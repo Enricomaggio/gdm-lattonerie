@@ -1,0 +1,44 @@
+Proxit: frecce su/giù sulle righe vuote (trasporti)
+
+Nella colonna sinistra del Proxit (lista trasporti), le righe vuote non hanno frecce. Voglio che le righe vuote tra le assegnazioni siano persistenti (sopravvivano al reload) e abbiano frecce su/giù per gestirle.
+
+Modifiche da fare:
+1. Schema DB (shared/schema.ts)
+Aggiungere colonna prePadding (integer, not null, default 0) alla tabella daily_assignments, subito dopo sortOrder:
+
+prePadding: integer("pre_padding").notNull().default(0),
+Poi fare db push per applicare.
+
+2. Migration (migrations/0012_add_pre_padding_to_daily_assignments.sql)
+Creare il file con:
+
+ALTER TABLE "daily_assignments" ADD COLUMN IF NOT EXISTS "pre_padding" integer NOT NULL DEFAULT 0;
+3. Storage (server/storage.ts)
+Aggiungere all'interfaccia IStorage:
+updateDailyAssignmentPrePadding(companyId: string, id: string, delta: number): Promise<DailyAssignment | undefined>;
+Implementare in DatabaseStorage: legge il record, calcola Math.max(0, prePadding + delta), fa update e ritorna il record aggiornato.
+4. API (server/routes.ts)
+Aggiungere endpoint PATCH /api/assignments/:id/pre-padding PRIMA della route PATCH /api/assignments/:id (altrimenti Express matcha quella generica). Accetta body { delta: 1 | -1 }, valida delta, chiama storage.updateDailyAssignmentPrePadding.
+
+5. Frontend (client/src/pages/proxit.tsx)
+a) Tipo FlatRow - aggiungere 3 campi:
+
+prePaddingOwner: DailyAssignment | null — l'assegnazione a cui appartiene la riga vuota
+prePaddingIndex: number — posizione della riga vuota (0, 1, 2...)
+isTailPadding: boolean — true se è padding automatico in fondo al giorno
+b) flatRows useMemo - per ogni assegnazione, PRIMA di inserire la riga dell'assegnazione, inserire prePadding righe vuote con prePaddingOwner = quell'assegnazione. Le righe di padding in fondo al giorno hanno isTailPadding: true e prePaddingOwner: null. Contare le righe pre-padding nel calcolo delle righe vuote necessarie per raggiungere il minimo del giorno.
+
+c) Mutation - aggiungere updatePrePaddingMutation che chiama PATCH /api/assignments/${id}/pre-padding con { delta }, e invalidare ["/api/assignments"]. Passare come prop onUpdatePrePadding: (id: string, delta: 1 | -1) => void al componente trasporti.
+
+d) Frecce su righe vuote pre-assegnazione (!assignment branch) - nella prima <td> (colonna frecce, 28px):
+
+Se row.prePaddingOwner esiste e non è riga compatta: mostrare ChevronUp e ChevronDown, stesso stile delle frecce sulle assegnazioni
+ChevronUp: onClick={() => onUpdatePrePadding(row.prePaddingOwner.id, -1)} — rimuove una riga vuota
+ChevronDown: onClick(() => onUpdatePrePadding(row.prePaddingOwner.id, 1)} — aggiunge una riga vuota
+Le righe con isTailPadding: true NON mostrano frecce
+Sulla seconda <td> (bottone "+"), mostrare il "+" solo se !row.prePaddingOwner
+e) Frecce su righe assegnazione — le frecce ↑/↓ devono essere SEMPRE visibili (non solo quando ci sono più assegnazioni). La logica:
+
+↑: se c'è un'assegnazione precedente nel giorno → riordina (swap sortOrder). Se non c'è ma prePadding > 0 → decrementa prePadding. Altrimenti disabilitata.
+↓: se c'è un'assegnazione successiva nel giorno → riordina. Se non c'è → incrementa prePadding (aggiunge riga vuota sopra di sé). Mai disabilitata.
+Per trovare l'assegnazione precedente/successiva: saltare le righe vuote (cercare la prima riga con assignment !== null sopra/sotto).
