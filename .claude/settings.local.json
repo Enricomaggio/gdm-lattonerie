@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -n '44,48p' /Users/enricom/Desktop/DaDo-Ponteggi-main/server/routes.ts)",
+      "Bash(sed -n '1607,1612p' /Users/enricom/Desktop/DaDo-Ponteggi-main/server/routes.ts)",
+      "Bash(sed -n '1872,1876p' /Users/enricom/Desktop/DaDo-Ponteggi-main/server/routes.ts)",
+      "Bash(sed -n '2229,2233p' /Users/enricom/Desktop/DaDo-Ponteggi-main/server/routes.ts)",
+      "Bash(sed -n '3803,3807p' /Users/enricom/Desktop/DaDo-Ponteggi-main/server/routes.ts)",
+      "Bash(sed -n '4104,4108p' /Users/enricom/Desktop/DaDo-Ponteggi-main/server/routes.ts)",
+      "Bash(sed -n '5548,5552p' /Users/enricom/Desktop/DaDo-Ponteggi-main/server/routes.ts)",
+      "Bash(sed -n '7919,7923p' /Users/enricom/Desktop/DaDo-Ponteggi-main/server/routes.ts)",
+      "Bash(python3:*)",
+      "Bash(export PATH=\"/usr/local/bin:$PATH\")",
+      "Bash(npx tsc:*)",
+      "Bash(grep -v \"^$\")"
+    ]
+  }
+}
