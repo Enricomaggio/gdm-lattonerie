@@ -170,9 +170,21 @@ usersRouter.post("/users/profile-image", isAuthenticated, profileImageUpload.sin
   }
 });
 
-// GET /api/users/:id/profile-image — serve immagine profilo (public)
-usersRouter.get("/users/:id/profile-image", async (req, res) => {
+// GET /api/users/:id/profile-image — serve immagine profilo (richiede autenticazione)
+// Nota: richiede isAuthenticated per prevenire information disclosure cross-tenant.
+// Il frontend deve passare il token JWT nell'header Authorization per le richieste immagine.
+usersRouter.get("/users/:id/profile-image", isAuthenticated, async (req, res) => {
   try {
+    const { id: requestingUserId, role } = req.user!;
+    // Verifica che il richiedente appartenga alla stessa azienda del proprietario
+    // dell'immagine, oppure sia SUPER_ADMIN.
+    if (role !== "SUPER_ADMIN") {
+      const requestingCompany = await resolveUserCompany(requestingUserId, role, req);
+      const targetCompany = await storage.getUserCompany(req.params.id);
+      if (!requestingCompany || !targetCompany || requestingCompany.companyId !== targetCompany.companyId) {
+        return res.status(404).json({ message: "Immagine non trovata" });
+      }
+    }
     const user = await getUserById(req.params.id);
     if (!user || !user.profileImageData) {
       return res.status(404).json({ message: "Immagine non trovata" });
@@ -387,9 +399,14 @@ usersRouter.post("/users/:userId/reset-password", isAuthenticated, async (req, r
       return res.status(403).json({ message: "Solo gli admin possono resettare le password" });
     }
     const targetUserId = req.params.userId;
-    const userCompany = await storage.getUserCompany(adminId);
+    // Usa resolveUserCompany (non storage.getUserCompany diretto) per onorare
+    // x-company-id header per SUPER_ADMIN e per garantire coerenza con il resto del sistema.
+    const userCompany = await resolveUserCompany(adminId, role, req);
+    if (!userCompany) {
+      return res.status(403).json({ message: "Utente non associato a nessuna azienda" });
+    }
     const targetUserCompany = await storage.getUserCompany(targetUserId);
-    if (!targetUserCompany || targetUserCompany.companyId !== userCompany?.companyId) {
+    if (!targetUserCompany || targetUserCompany.companyId !== userCompany.companyId) {
       return res.status(404).json({ message: "Utente non trovato" });
     }
     const token = crypto.randomUUID();
@@ -412,9 +429,13 @@ usersRouter.post("/users/:userId/unlock", isAuthenticated, async (req, res) => {
       return res.status(403).json({ message: "Solo gli admin possono sbloccare gli account" });
     }
     const targetUserId = req.params.userId;
-    const userCompany = await storage.getUserCompany(adminId);
+    // Usa resolveUserCompany per coerenza con il sistema e supporto x-company-id per SUPER_ADMIN.
+    const userCompany = await resolveUserCompany(adminId, role, req);
+    if (!userCompany) {
+      return res.status(403).json({ message: "Utente non associato a nessuna azienda" });
+    }
     const targetUserCompany = await storage.getUserCompany(targetUserId);
-    if (!targetUserCompany || targetUserCompany.companyId !== userCompany?.companyId) {
+    if (!targetUserCompany || targetUserCompany.companyId !== userCompany.companyId) {
       return res.status(404).json({ message: "Utente non trovato" });
     }
     await resetFailedLoginAttempts(targetUserId);

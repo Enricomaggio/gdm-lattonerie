@@ -3,9 +3,17 @@ import type { UserRole } from "@shared/schema";
 import type { Request } from "express";
 
 export async function resolveUserCompany(uid: string, userRole: UserRole, request: Request): Promise<{ companyId: string } | undefined> {
+  // SECURITY: l'header x-company-id è onorato SOLO per SUPER_ADMIN.
+  // Per qualsiasi altro ruolo la funzione cade nel ramo storage.getUserCompany(uid),
+  // che legge l'associazione reale dal DB — non manipolabile dal client.
+  // Il ruolo proviene dal JWT firmato dal server (isAuthenticated middleware),
+  // quindi non può essere falsificato.
   if (userRole === "SUPER_ADMIN") {
     const overrideCompanyId = request.headers["x-company-id"] as string | undefined;
     if (overrideCompanyId) {
+      // Valida che la company esista nel DB prima di fidarsi dell'header.
+      const company = await storage.getCompany(overrideCompanyId);
+      if (!company) return undefined; // company inesistente → tratta come non specificata
       return { companyId: overrideCompanyId };
     }
   }
