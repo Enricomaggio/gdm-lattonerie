@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { APP_CONFIG } from "@/lib/config";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useConfirmClose } from "@/hooks/use-confirm-close";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -617,11 +618,11 @@ export default function CatalogPage() {
                   <TableRow>
                     <TableHead className="w-24">Codice</TableHead>
                     <TableHead>Nome Articolo</TableHead>
-                    <TableHead className="w-28">Categoria</TableHead>
+                    {APP_CONFIG.modulePonteggi && <TableHead className="w-28">Categoria</TableHead>}
                     <TableHead className="w-16">Unità</TableHead>
                     <TableHead className="w-40">Prezzo</TableHead>
-                    <TableHead className="w-24">Mag.</TableHead>
-                    <TableHead className="w-24">Checklist</TableHead>
+                    {APP_CONFIG.modulePonteggi && <TableHead className="w-24">Mag.</TableHead>}
+                    {APP_CONFIG.modulePonteggi && <TableHead className="w-24">Checklist</TableHead>}
                     {isAdmin && <TableHead className="w-20">Azioni</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -639,38 +640,44 @@ export default function CatalogPage() {
                       <TableCell className="font-medium">
                         {article.name}
                       </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant="secondary" 
-                          className={pricingLogicColors[article.pricingLogic]}
-                        >
-                          {pricingLogicLabels[article.pricingLogic]}
-                        </Badge>
-                      </TableCell>
+                      {APP_CONFIG.modulePonteggi && (
+                        <TableCell>
+                          <Badge
+                            variant="secondary"
+                            className={pricingLogicColors[article.pricingLogic]}
+                          >
+                            {pricingLogicLabels[article.pricingLogic]}
+                          </Badge>
+                        </TableCell>
+                      )}
                       <TableCell className="text-muted-foreground">
                         {unitTypeLabels[article.unitType]}
                       </TableCell>
                       <TableCell className="font-medium">
                         {formatPrice(article)}
                       </TableCell>
-                      <TableCell className="text-sm">
-                        {article.warehouseCostPerUnit ? (
-                          <span className="font-mono">
-                            €{formatCurrency(parseFloat(article.warehouseCostPerUnit))}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {article.isChecklistItem === 1 ? (
-                          <Badge variant="outline" className="bg-accent/50">
-                            Sì ({article.checklistOrder})
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">No</span>
-                        )}
-                      </TableCell>
+                      {APP_CONFIG.modulePonteggi && (
+                        <TableCell className="text-sm">
+                          {article.warehouseCostPerUnit ? (
+                            <span className="font-mono">
+                              €{formatCurrency(parseFloat(article.warehouseCostPerUnit))}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      )}
+                      {APP_CONFIG.modulePonteggi && (
+                        <TableCell>
+                          {article.isChecklistItem === 1 ? (
+                            <Badge variant="outline" className="bg-accent/50">
+                              Sì ({article.checklistOrder})
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">No</span>
+                          )}
+                        </TableCell>
+                      )}
                       {isAdmin && (
                         <TableCell>
                           <div className="flex gap-1">
@@ -1039,58 +1046,62 @@ export default function CatalogPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Categoria</Label>
-                  <Badge className={pricingLogicColors[editingArticle.pricingLogic]}>
-                    {pricingLogicLabels[editingArticle.pricingLogic]}
-                  </Badge>
+              {APP_CONFIG.modulePonteggi && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Categoria</Label>
+                    <Badge className={pricingLogicColors[editingArticle.pricingLogic]}>
+                      {pricingLogicLabels[editingArticle.pricingLogic]}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-order">Ordine Checklist</Label>
+                    <Input
+                      id="edit-order"
+                      type="number"
+                      min={0}
+                      value={editingArticle.checklistOrder || ""}
+                      onChange={(e) => {
+                        const newOrder = parseInt(e.target.value) || 0;
+                        setEditingArticle({
+                          ...editingArticle,
+                          checklistOrder: newOrder,
+                          isChecklistItem: newOrder > 0 ? 1 : 0
+                        });
+                      }}
+                      placeholder="0 = non in checklist"
+                      data-testid="input-edit-order"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-order">Ordine Checklist</Label>
-                  <Input
-                    id="edit-order"
-                    type="number"
-                    min={0}
-                    value={editingArticle.checklistOrder || ""}
-                    onChange={(e) => {
-                      const newOrder = parseInt(e.target.value) || 0;
-                      setEditingArticle({ 
-                        ...editingArticle, 
-                        checklistOrder: newOrder,
-                        isChecklistItem: newOrder > 0 ? 1 : 0
-                      });
-                    }}
-                    placeholder="0 = non in checklist"
-                    data-testid="input-edit-order"
-                  />
-                </div>
-              </div>
+              )}
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-warehouse-cost">
-                  Costo Magazzino (€/{unitTypeLabels[editingArticle.unitType]})
-                </Label>
-                <Input
-                  id="edit-warehouse-cost"
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={editingArticle.warehouseCostPerUnit || ""}
-                  onChange={(e) => setEditingArticle({ 
-                    ...editingArticle, 
-                    warehouseCostPerUnit: e.target.value || null 
-                  })}
-                  placeholder="Es. 0.60"
-                  data-testid="input-edit-warehouse-cost"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Costo unitario per la movimentazione di magazzino
-                </p>
-              </div>
+              {APP_CONFIG.modulePonteggi && (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-warehouse-cost">
+                    Costo Magazzino (€/{unitTypeLabels[editingArticle.unitType]})
+                  </Label>
+                  <Input
+                    id="edit-warehouse-cost"
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    value={editingArticle.warehouseCostPerUnit || ""}
+                    onChange={(e) => setEditingArticle({
+                      ...editingArticle,
+                      warehouseCostPerUnit: e.target.value || null
+                    })}
+                    placeholder="Es. 0.60"
+                    data-testid="input-edit-warehouse-cost"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Costo unitario per la movimentazione di magazzino
+                  </p>
+                </div>
+              )}
 
               {/* Sezione Servizio Aggiuntivo per Preventivo */}
-              <div className="border-t pt-4 space-y-3">
+              {APP_CONFIG.modulePonteggi && <div className="border-t pt-4 space-y-3">
                 <div className="flex items-center gap-3">
                   <Switch
                     checked={editingArticle.isAdditionalService === 1}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { APP_CONFIG } from "@/lib/config";
 import { useConfirmClose } from "@/hooks/use-confirm-close";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -983,10 +984,12 @@ export default function LeadDetailPage() {
               <FileText className="w-4 h-4 mr-2" />
               Opportunità ({opportunities.length})
             </TabsTrigger>
-            <TabsTrigger value="amministrazione" data-testid="tab-amministrazione">
-              <CreditCard className="w-4 h-4 mr-2" />
-              Amministrazione
-            </TabsTrigger>
+            {APP_CONFIG.moduleAmministrazione && (
+              <TabsTrigger value="amministrazione" data-testid="tab-amministrazione">
+                <CreditCard className="w-4 h-4 mr-2" />
+                Amministrazione
+              </TabsTrigger>
+            )}
             {(watchEntityType === "COMPANY" || lead?.entityType === "COMPANY") && (
               <TabsTrigger value="finanziaria" data-testid="tab-finanziaria">
                 <BarChart3 className="w-4 h-4 mr-2" />
@@ -2132,38 +2135,40 @@ export default function LeadDetailPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="amministrazione" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" />
-                  Fatturazione
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Numero Fattura</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Importo</TableHead>
-                      <TableHead>Stato Pagamento</TableHead>
-                      <TableHead>Scadenza</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                        <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                        <p className="font-medium">In attesa di integrazione con Arca Evolution</p>
-                        <p className="text-sm mt-1">I dati di fatturazione saranno disponibili dopo l'integrazione</p>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {APP_CONFIG.moduleAmministrazione && (
+            <TabsContent value="amministrazione" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="w-5 h-5" />
+                    Fatturazione
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Numero Fattura</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Importo</TableHead>
+                        <TableHead>Stato Pagamento</TableHead>
+                        <TableHead>Scadenza</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                          <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                          <p className="font-medium">In attesa di integrazione con Arca Evolution</p>
+                          <p className="text-sm mt-1">I dati di fatturazione saranno disponibili dopo l'integrazione</p>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
 
           {(watchEntityType === "COMPANY" || lead?.entityType === "COMPANY") && (
             <TabsContent value="finanziaria" className="mt-6" data-testid="content-finanziaria">

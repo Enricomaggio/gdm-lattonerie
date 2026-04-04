@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useAuth, usePermission, type UserRole } from "@/lib/auth";
+import { APP_CONFIG } from "@/lib/config";
 import { useIdleTimeout } from "@/hooks/use-idle-timeout";
 import { useCompanyContext } from "@/lib/company-context";
 import { queryClient } from "@/lib/queryClient";
@@ -71,7 +72,7 @@ const allNavigationItems: NavItem[] = [
   { href: "/leads", label: "Contatti", icon: Users, requiresLeadAccess: true },
   { href: "/opportunita", label: "Opportunità", icon: Target, requiresLeadAccess: true },
   { href: "/progetti", label: "Progetti", icon: FolderKanban, allowedRoles: ["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"] },
-  { href: "/proxit", label: "Proxit", icon: CalendarDays, allowedRoles: ["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"] },
+  ...(APP_CONFIG.moduleProxit ? [{ href: "/proxit", label: "Proxit", icon: CalendarDays, allowedRoles: ["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"] as UserRole[] }] : []),
   { href: "/sal", label: "SAL", icon: ClipboardList, allowedRoles: ["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"] },
   { href: "/mappa", label: "Mappa Cantieri", icon: Map },
   { href: "/catalog", label: "Catalogo", icon: Package, requiresLeadAccess: true },
@@ -211,7 +212,7 @@ export function DashboardLayout({ children, user, fullWidth = false }: Dashboard
             )}>
               <img
                 src="/logo_dash.png"
-                alt="Da.Do Ponteggi"
+                alt={APP_CONFIG.appName}
                 className={cn(
                   isDesktopCollapsed ? "h-8 w-8 object-contain" : "h-10 w-auto"
                 )}

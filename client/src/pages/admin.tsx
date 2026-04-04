@@ -409,7 +409,7 @@ export default function AdminPage() {
           <CardHeader>
             <CardTitle>Elenco Aziende</CardTitle>
             <CardDescription>
-              Tutte le aziende registrate nel sistema Da.Do Ponteggi
+              Tutte le aziende registrate nel sistema
             </CardDescription>
           </CardHeader>
           <CardContent>

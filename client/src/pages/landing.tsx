@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Users, 
-  BarChart3, 
-  Shield, 
+import {
+  Users,
+  BarChart3,
+  Shield,
   ArrowRight,
   CheckCircle2
 } from "lucide-react";
+import { APP_CONFIG } from "@/lib/config";
 
 const features = [
   {
@@ -26,13 +27,13 @@ const features = [
   },
 ];
 
-const benefits = [
-  "Piattaforma dedicata Da.Do Ponteggi",
-  "Setup in meno di 5 minuti",
-  "Supporto dedicato incluso",
-];
-
 export default function LandingPage() {
+  const benefits = [
+    `Piattaforma dedicata ${APP_CONFIG.appName}`,
+    "Setup in meno di 5 minuti",
+    "Supporto dedicato incluso",
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -40,7 +41,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <img src="/logo-ponteggi.png" alt="Da.Do Ponteggi" className="h-10 w-auto" />
+              <img src="/logo-ponteggi.png" alt={APP_CONFIG.appName} className="h-10 w-auto" />
             </div>
             <Button asChild data-testid="button-login-header">
               <a href="/login">
@@ -57,13 +58,13 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="max-w-3xl mx-auto text-center">
-            <img src="/logo-ponteggi.png" alt="Da.Do Ponteggi" className="h-20 mx-auto mb-6" />
+            <img src="/logo-ponteggi.png" alt={APP_CONFIG.appName} className="h-20 mx-auto mb-6" />
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
               Il CRM per
-              <span className="block text-primary mt-2">Da.Do Ponteggi</span>
+              <span className="block text-primary mt-2">{APP_CONFIG.appName}</span>
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              La piattaforma dedicata per Da.Do Ponteggi e i suoi affiliati. 
+              La piattaforma dedicata per {APP_CONFIG.appName} e i suoi affiliati.{" "}
               Gestisci i tuoi lead in modo semplice ed efficace.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -99,8 +100,8 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <Card 
-                key={index} 
+              <Card
+                key={index}
                 className="border bg-card hover-elevate transition-all duration-200"
                 data-testid={`card-feature-${index}`}
               >
@@ -130,11 +131,11 @@ export default function LandingPage() {
                 Pronto a trasformare il tuo processo di vendita?
               </h2>
               <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">
-                Entra nella piattaforma Da.Do Ponteggi e inizia a gestire i tuoi lead.
+                Entra nella piattaforma {APP_CONFIG.appName} e inizia a gestire i tuoi lead.
               </p>
-              <Button 
-                size="lg" 
-                variant="secondary" 
+              <Button
+                size="lg"
+                variant="secondary"
                 asChild
                 data-testid="button-cta-footer"
               >
@@ -153,10 +154,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <img src="/logo-ponteggi.png" alt="Da.Do Ponteggi" className="h-8 w-auto" />
+              <img src="/logo-ponteggi.png" alt={APP_CONFIG.appName} className="h-8 w-auto" />
             </div>
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Da.Do Ponteggi. Tutti i diritti riservati.
+              © {new Date().getFullYear()} {APP_CONFIG.appName}. Tutti i diritti riservati.
             </p>
           </div>
         </div>

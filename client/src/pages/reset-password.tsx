@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { APP_CONFIG } from "@/lib/config";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -166,7 +167,7 @@ export default function ResetPasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src="/logo-ponteggi.png" alt="Da.Do Ponteggi" className="h-12 object-contain" />
+            <img src="/logo-ponteggi.png" alt={APP_CONFIG.appName} className="h-12 object-contain" />
           </div>
           <CardTitle className="flex items-center justify-center gap-2">
             <KeyRound className="w-5 h-5" />
