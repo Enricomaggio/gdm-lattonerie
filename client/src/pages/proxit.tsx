@@ -1550,7 +1550,7 @@ export default function ProxitPage() {
                             size="icon"
                             onClick={() => deleteDriverMutation.mutate(driver.id)}
                             data-testid={`button-delete-driver-${driver.id}`}
-                            disabled={!hasLock}
+                            disabled={!hasLock || deleteDriverMutation.isPending}
                           >
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
@@ -1606,7 +1606,7 @@ export default function ProxitPage() {
                             size="icon"
                             onClick={() => deleteVehicleMutation.mutate(vehicle.id)}
                             data-testid={`button-delete-vehicle-${vehicle.id}`}
-                            disabled={!hasLock}
+                            disabled={!hasLock || deleteVehicleMutation.isPending}
                           >
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>

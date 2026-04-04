@@ -23,11 +23,9 @@ declare global {
 }
 
 function getJwtSecret() {
-  // Aggiungiamo l'OR (||) con un segreto di default se manca l'ambiente
-  const secret = process.env.SESSION_SECRET || "super-segreto-di-emergenza-123";
-  
+  const secret = process.env.SESSION_SECRET;
   if (!secret) {
-    throw new Error("SESSION_SECRET environment variable is required for JWT authentication");
+    throw new Error("CRITICAL: SESSION_SECRET non configurato nel file .env. Il server non può partire in modalità insicura.");
   }
   return secret;
 }

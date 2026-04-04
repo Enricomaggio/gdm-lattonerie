@@ -345,47 +345,60 @@ notificationsRouter.post("/notifications/check-expiring-quotes", isAuthenticated
       return new Date(opp.quoteReminderSnoozedUntil) < now;
     });
 
-    let created = 0;
+    // Bulk fetch: leads + existing notifications in 2 query parallele invece di N×2
+    const leadIds = toNotify.map(o => o.leadId).filter(Boolean) as string[];
+    const oppLinks = toNotify.map(o => `/opportunita?open=${o.id}`);
+
+    const [leadsData, existingNotifs] = await Promise.all([
+      leadIds.length > 0
+        ? db.select({ id: leadsTable.id, name: leadsTable.name, firstName: leadsTable.firstName, lastName: leadsTable.lastName, entityType: leadsTable.entityType })
+            .from(leadsTable)
+            .where(inArray(leadsTable.id, leadIds))
+        : Promise.resolve([]),
+      oppLinks.length > 0
+        ? db.select({ userId: notifications.userId, link: notifications.link })
+            .from(notifications)
+            .where(and(
+              eq(notifications.type, "QUOTE_EXPIRING"),
+              eq(notifications.isRead, false),
+              inArray(notifications.link, oppLinks)
+            ))
+        : Promise.resolve([]),
+    ]);
+
+    const leadMap = new Map(leadsData.map(l => [l.id, l]));
+    const alreadyNotified = new Set(existingNotifs.map(n => `${n.userId}:${n.link}`));
+
+    const notificationsToCreate: Array<typeof notifications.$inferInsert> = [];
+
     for (const opp of toNotify) {
       const targetUserId = opp.assignedToUserId || userId;
+      const link = `/opportunita?open=${opp.id}`;
 
-      const existingNotifs = await db
-        .select()
-        .from(notifications)
-        .where(
-          and(
-            eq(notifications.userId, targetUserId),
-            eq(notifications.type, "QUOTE_EXPIRING"),
-            eq(notifications.isRead, false),
-            eq(notifications.link, `/opportunita?open=${opp.id}`)
-          )
-        );
-
-      if (existingNotifs.length > 0) continue;
+      if (alreadyNotified.has(`${targetUserId}:${link}`)) continue;
 
       const daysAgo = Math.floor((now.getTime() - new Date(opp.quoteSentAt!).getTime()) / (24 * 60 * 60 * 1000));
+      const lead = leadMap.get(opp.leadId);
+      const clientName = lead
+        ? (lead.entityType === "COMPANY" ? (lead.name || opp.title) : `${lead.firstName} ${lead.lastName}`.trim() || opp.title)
+        : opp.title;
 
-      let clientName = opp.title;
-      try {
-        const lead = await storage.getLead(opp.leadId, companyId);
-        if (lead) {
-          clientName = lead.entityType === "COMPANY" ? (lead.name || opp.title) : `${lead.firstName} ${lead.lastName}`.trim() || opp.title;
-        }
-      } catch {}
-
-      await storage.createNotification({
+      notificationsToCreate.push({
         userId: targetUserId,
         companyId,
         type: "QUOTE_EXPIRING",
         title: "Preventivo in attesa da 60 giorni",
         message: `${clientName} — preventivo in attesa da ${daysAgo} giorni`,
-        link: `/opportunita?open=${opp.id}`,
+        link,
         isRead: false,
       });
-      created++;
     }
 
-    res.json({ created });
+    if (notificationsToCreate.length > 0) {
+      await db.insert(notifications).values(notificationsToCreate);
+    }
+
+    res.json({ created: notificationsToCreate.length });
   } catch (error: any) {
     console.error("Error checking expiring quotes:", error);
     res.status(500).json({ message: error.message });
@@ -438,51 +451,57 @@ notificationsRouter.post("/notifications/check-rdc-pending", isAuthenticated, as
       u.role === "COMPANY_ADMIN" || u.role === "SUPER_ADMIN"
     );
 
-    let created = 0;
+    // Build tutte le coppie (project, recipient) prima del fetch
+    type NotifPair = { recipientId: string; link: string; project: (typeof rdcProjects)[0]; daysAgo: number };
+    const allPairs: NotifPair[] = [];
     for (const project of rdcProjects) {
       const daysAgo = project.stageEnteredAt
         ? Math.floor((now.getTime() - new Date(project.stageEnteredAt).getTime()) / (24 * 60 * 60 * 1000))
         : 3;
-
-      const recipientIds = new Set<string>();
-      if (project.assignedTechnicianId) {
-        recipientIds.add(project.assignedTechnicianId);
-      }
-      for (const admin of adminUsers) {
-        recipientIds.add(admin.id);
-      }
-
       const notifLink = `/progetti?rdc=${project.id}`;
 
+      const recipientIds = new Set<string>();
+      if (project.assignedTechnicianId) recipientIds.add(project.assignedTechnicianId);
+      for (const admin of adminUsers) recipientIds.add(admin.id);
       for (const recipientId of recipientIds) {
-        const existingNotifs = await db
-          .select()
-          .from(notifications)
-          .where(
-            and(
-              eq(notifications.userId, recipientId),
-              eq(notifications.type, "RDC_PENDING"),
-              eq(notifications.isRead, false),
-              eq(notifications.link, notifLink)
-            )
-          );
-
-        if (existingNotifs.length > 0) continue;
-
-        await storage.createNotification({
-          userId: recipientId,
-          companyId,
-          type: "RDC_PENDING",
-          title: "Sollecita l'ingegnere",
-          message: `${project.clientName} è in attesa di RDC da ${daysAgo} giorni`,
-          link: notifLink,
-          isRead: false,
-        });
-        created++;
+        allPairs.push({ recipientId, link: notifLink, project, daysAgo });
       }
     }
 
-    res.json({ created });
+    // Bulk fetch: 1 query per tutte le notifiche RDC_PENDING esistenti invece di N×M query
+    const rdcLinks = allPairs.map(p => p.link).filter((l, i, arr) => arr.indexOf(l) === i);
+    const existingRdcNotifs = rdcLinks.length > 0
+      ? await db
+          .select({ userId: notifications.userId, link: notifications.link })
+          .from(notifications)
+          .where(and(
+            eq(notifications.type, "RDC_PENDING"),
+            eq(notifications.isRead, false),
+            inArray(notifications.link, rdcLinks)
+          ))
+      : [];
+
+    const alreadyNotifiedRdc = new Set(existingRdcNotifs.map(n => `${n.userId}:${n.link}`));
+
+    const notificationsToCreate: Array<typeof notifications.$inferInsert> = [];
+    for (const { recipientId, link, project, daysAgo } of allPairs) {
+      if (alreadyNotifiedRdc.has(`${recipientId}:${link}`)) continue;
+      notificationsToCreate.push({
+        userId: recipientId,
+        companyId,
+        type: "RDC_PENDING",
+        title: "Sollecita l'ingegnere",
+        message: `${project.clientName} è in attesa di RDC da ${daysAgo} giorni`,
+        link,
+        isRead: false,
+      });
+    }
+
+    if (notificationsToCreate.length > 0) {
+      await db.insert(notifications).values(notificationsToCreate);
+    }
+
+    res.json({ created: notificationsToCreate.length });
   } catch (error: any) {
     console.error("Error checking RDC pending:", error);
     res.status(500).json({ message: error.message });
@@ -509,16 +528,23 @@ async function runSitePhotoNotificationCheck(): Promise<{ sent: number; errors: 
       )
       .returning();
 
+    // Bulk fetch leads in 1 query invece di N query
+    const claimedLeadIds = claimedOpps.map(o => o.leadId).filter(Boolean) as string[];
+    const claimedLeadsData = claimedLeadIds.length > 0
+      ? await db
+          .select({ id: leadsTable.id, name: leadsTable.name, firstName: leadsTable.firstName, lastName: leadsTable.lastName, entityType: leadsTable.entityType })
+          .from(leadsTable)
+          .where(inArray(leadsTable.id, claimedLeadIds))
+      : [];
+    const claimedLeadMap = new Map(claimedLeadsData.map(l => [l.id, l]));
+
     for (const opp of claimedOpps) {
       try {
         const sq = opp.siteQuality;
         const notifType = sq === "PHOTO_VIDEO" ? "SITE_PHOTO_VIDEO" : "SITE_PHOTO";
         const notifTitle = sq === "PHOTO_VIDEO" ? "Cantiere da foto + video" : "Cantiere da foto";
 
-        const [lead] = await db
-          .select({ name: leadsTable.name, firstName: leadsTable.firstName, lastName: leadsTable.lastName, entityType: leadsTable.entityType })
-          .from(leadsTable)
-          .where(eq(leadsTable.id, opp.leadId));
+        const lead = claimedLeadMap.get(opp.leadId);
         const clientName = lead
           ? (lead.entityType === "COMPANY" && lead.name ? lead.name : `${lead.firstName || ""} ${lead.lastName || ""}`.trim())
           : opp.title;

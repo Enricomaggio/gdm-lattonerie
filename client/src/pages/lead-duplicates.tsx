@@ -162,10 +162,12 @@ function DuplicatePairCard({
   pair,
   onMerge,
   onIgnore,
+  isMergePending,
 }: {
   pair: DuplicatePair;
   onMerge: (primaryId: string, duplicateId: string) => void;
   onIgnore: () => void;
+  isMergePending?: boolean;
 }) {
   const [primaryId, setPrimaryId] = useState<string>(pair.lead1.id);
   const duplicateId = primaryId === pair.lead1.id ? pair.lead2.id : pair.lead1.id;
@@ -211,9 +213,10 @@ function DuplicatePairCard({
             size="sm"
             onClick={() => onMerge(primaryId, duplicateId)}
             data-testid={`button-merge-${pair.lead1.id}-${pair.lead2.id}`}
+            disabled={isMergePending}
           >
             <GitMerge className="w-3.5 h-3.5 mr-1" />
-            Unisci
+            {isMergePending ? "Unione in corso..." : "Unisci"}
           </Button>
         </div>
       </CardContent>
@@ -331,6 +334,7 @@ export default function LeadDuplicatesPage() {
                 pair={pair}
                 onMerge={handleMerge}
                 onIgnore={() => handleIgnore(pair)}
+                isMergePending={mergeMutation.isPending}
               />
             ))}
           </div>
