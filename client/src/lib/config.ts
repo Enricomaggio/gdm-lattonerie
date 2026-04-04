@@ -4,4 +4,5 @@ export const APP_CONFIG = {
   modulePonteggi: import.meta.env.VITE_MODULE_PONTEGGI !== "false",
   moduleProxit: import.meta.env.VITE_MODULE_PROXIT !== "false",
   moduleAmministrazione: import.meta.env.VITE_MODULE_AMMINISTRAZIONE !== "false",
+  quoteEditorType: (import.meta.env.VITE_QUOTE_EDITOR_TYPE as string) || "scaffolding",
 };

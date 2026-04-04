@@ -63,7 +63,7 @@ import SettingsPage from "@/pages/settings";
 import TeamPage from "@/pages/team";
 import AdminPage from "@/pages/admin";
 import CatalogPage from "@/pages/catalog";
-import QuoteNewPage from "@/pages/quote-new";
+import QuoteNewPage from "@/pages/quotes/QuoteSelector";
 import QuoteViewPage from "@/pages/quote-view";
 import ProgettiPage from "@/pages/progetti";
 import GanttPage from "@/pages/gantt";

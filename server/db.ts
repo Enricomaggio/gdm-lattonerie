@@ -448,6 +448,56 @@ export async function bootstrapDatabase(): Promise<void> {
       ALTER TABLE daily_assignments
         ADD COLUMN IF NOT EXISTS external_team_contacted jsonb;
     `);
+
+    // Migration 0017: working_days on daily_assignments (days of week as int array)
+    await client.query(`
+      ALTER TABLE daily_assignments
+        ADD COLUMN IF NOT EXISTS working_days integer[] NOT NULL DEFAULT '{1,2,3,4,5}';
+    `);
+
+    // Migration 0019: material_type and material_quantity on daily_assignments
+    await client.query(`
+      ALTER TABLE daily_assignments
+        ADD COLUMN IF NOT EXISTS material_type text,
+        ADD COLUMN IF NOT EXISTS material_quantity integer;
+    `);
+
+    // Migration 0020b: warehouse_balances table (saldi di magazzino per azienda)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS warehouse_balances (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id VARCHAR NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+        warehouse_type TEXT NOT NULL,
+        date TIMESTAMP,
+        value NUMERIC(12, 2) NOT NULL DEFAULT 0,
+        CONSTRAINT warehouse_balances_company_warehouse_date_unique
+          UNIQUE NULLS NOT DISTINCT (company_id, warehouse_type, date)
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS warehouse_balances_company_id_idx
+        ON warehouse_balances (company_id);
+    `);
+
+    // Migration 0021: chi/cosa fields on daily_assignments
+    await client.query(`
+      ALTER TABLE daily_assignments
+        ADD COLUMN IF NOT EXISTS chi text,
+        ADD COLUMN IF NOT EXISTS cosa text;
+    `);
+
+    // Migration 0022: materials (jsonb) on daily_assignments
+    await client.query(`
+      ALTER TABLE daily_assignments
+        ADD COLUMN IF NOT EXISTS materials jsonb;
+    `);
+
+    // Migration 0023: chi_color and cosa_color on daily_assignments
+    await client.query(`
+      ALTER TABLE daily_assignments
+        ADD COLUMN IF NOT EXISTS chi_color text,
+        ADD COLUMN IF NOT EXISTS cosa_color text;
+    `);
   } finally {
     client.release();
   }

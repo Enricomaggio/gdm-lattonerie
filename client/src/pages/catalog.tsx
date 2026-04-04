@@ -1188,11 +1188,11 @@ export default function CatalogPage() {
                     </div>
                   </div>
                 )}
-              </div>
+              </div>}
 
               </div>
 
-              {editingArticle.code === "TRA-BAR" ? (
+              {APP_CONFIG.modulePonteggi && (editingArticle.code === "TRA-BAR" ? (
                 <div className={`border-t pt-4 space-y-4 ${!isAdmin ? "pointer-events-none opacity-80" : ""}`}>
                   <BarcaVariantsEditor
                     article={editingArticle}
@@ -1232,9 +1232,9 @@ export default function CatalogPage() {
                   </TabsList>
                   <div className={!isAdmin ? "pointer-events-none opacity-80" : ""}>
                   <TabsContent value="pricing" className="mt-4">
-                    <PricingDataEditor 
-                      article={editingArticle} 
-                      onChange={setEditingArticle} 
+                    <PricingDataEditor
+                      article={editingArticle}
+                      onChange={setEditingArticle}
                     />
                   </TabsContent>
                   <TabsContent value="installation" className="mt-4">
@@ -1256,12 +1256,12 @@ export default function CatalogPage() {
               ) : (
                 <div className={`border-t pt-4 ${!isAdmin ? "pointer-events-none opacity-80" : ""}`}>
                   <h4 className="font-medium mb-3">Dati Prezzo</h4>
-                  <PricingDataEditor 
-                    article={editingArticle} 
-                    onChange={setEditingArticle} 
+                  <PricingDataEditor
+                    article={editingArticle}
+                    onChange={setEditingArticle}
                   />
                 </div>
-              )}
+              ))}
             </div>
           )}
 
@@ -1407,61 +1407,65 @@ export default function CatalogPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-article-category">Categoria</Label>
-                <Select
-                  value={newArticle.category}
-                  onValueChange={(v) => setNewArticle({ ...newArticle, category: v as ArticleCategory })}
-                >
-                  <SelectTrigger id="new-article-category" data-testid="select-new-article-category">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SCAFFOLDING">Ponteggio</SelectItem>
-                    <SelectItem value="SCAFFOLDING_LABOR">Manodopera</SelectItem>
-                    <SelectItem value="TRANSPORT">Trasporto</SelectItem>
-                    <SelectItem value="TRASFERTA">Trasferta</SelectItem>
-                    <SelectItem value="SERVICE">Servizio</SelectItem>
-                    <SelectItem value="HANDLING">Movimentazione</SelectItem>
-                    <SelectItem value="HOIST">Montacarichi</SelectItem>
-                    <SelectItem value="DOCUMENT">Documento</SelectItem>
-                  </SelectContent>
-                </Select>
+            {APP_CONFIG.modulePonteggi && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-article-category">Categoria</Label>
+                  <Select
+                    value={newArticle.category}
+                    onValueChange={(v) => setNewArticle({ ...newArticle, category: v as ArticleCategory })}
+                  >
+                    <SelectTrigger id="new-article-category" data-testid="select-new-article-category">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="SCAFFOLDING">Ponteggio</SelectItem>
+                      <SelectItem value="SCAFFOLDING_LABOR">Manodopera</SelectItem>
+                      <SelectItem value="TRANSPORT">Trasporto</SelectItem>
+                      <SelectItem value="TRASFERTA">Trasferta</SelectItem>
+                      <SelectItem value="SERVICE">Servizio</SelectItem>
+                      <SelectItem value="HANDLING">Movimentazione</SelectItem>
+                      <SelectItem value="HOIST">Montacarichi</SelectItem>
+                      <SelectItem value="DOCUMENT">Documento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-pricing-logic">Logica Prezzo</Label>
+                  <Select
+                    value={newArticle.pricingLogic}
+                    onValueChange={(v) => setNewArticle({ ...newArticle, pricingLogic: v as PricingLogic })}
+                  >
+                    <SelectTrigger id="new-pricing-logic" data-testid="select-new-pricing-logic">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="RENTAL">Noleggio</SelectItem>
+                      <SelectItem value="SALE">Vendita</SelectItem>
+                      <SelectItem value="HOIST">Ponteggi Elettrici</SelectItem>
+                      <SelectItem value="TRANSPORT">Trasporto</SelectItem>
+                      <SelectItem value="DOCUMENT">Documento</SelectItem>
+                      <SelectItem value="SERVICE">Servizio</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-pricing-logic">Logica Prezzo</Label>
-                <Select
-                  value={newArticle.pricingLogic}
-                  onValueChange={(v) => setNewArticle({ ...newArticle, pricingLogic: v as PricingLogic })}
-                >
-                  <SelectTrigger id="new-pricing-logic" data-testid="select-new-pricing-logic">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="RENTAL">Noleggio</SelectItem>
-                    <SelectItem value="SALE">Vendita</SelectItem>
-                    <SelectItem value="HOIST">Ponteggi Elettrici</SelectItem>
-                    <SelectItem value="TRANSPORT">Trasporto</SelectItem>
-                    <SelectItem value="DOCUMENT">Documento</SelectItem>
-                    <SelectItem value="SERVICE">Servizio</SelectItem>
-                  </SelectContent>
-                </Select>
+            )}
+            {APP_CONFIG.modulePonteggi && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-checklist">Ordine Checklist</Label>
+                  <Input
+                    id="new-checklist"
+                    type="number"
+                    value={newArticle.checklistOrder || ""}
+                    onChange={(e) => setNewArticle({ ...newArticle, checklistOrder: parseInt(e.target.value) || 0 })}
+                    placeholder="0 = non in checklist"
+                    data-testid="input-new-checklist"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-checklist">Ordine Checklist</Label>
-                <Input
-                  id="new-checklist"
-                  type="number"
-                  value={newArticle.checklistOrder || ""}
-                  onChange={(e) => setNewArticle({ ...newArticle, checklistOrder: parseInt(e.target.value) || 0 })}
-                  placeholder="0 = non in checklist"
-                  data-testid="input-new-checklist"
-                />
-              </div>
-            </div>
+            )}
 
             <p className="text-xs text-muted-foreground">
               Dopo la creazione potrai configurare prezzi, varianti e manodopera dalla modifica articolo.
