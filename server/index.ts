@@ -88,8 +88,7 @@ app.use((req, res, next) => {
     await setupVite(httpServer, app);
   }
 
-// Se Replit o Railway ci danno una porta (PORT) usiamo quella,
-  // altrimenti sul Mac usiamo la 5001 per evitare conflitti con AirPlay
+// Porta: variabile d'ambiente PORT oppure 5001 (evita conflitti con AirPlay su Mac)
   const port = parseInt(process.env.PORT || "5001", 10);
   
   httpServer.listen(port, () => {

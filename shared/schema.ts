@@ -3,7 +3,7 @@ import { pgTable, text, varchar, timestamp, index, uniqueIndex, unique, integer,
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Esporta tutto da auth per mantenere le tabelle sessions e users di Replit Auth
+// Esporta le tabelle sessions e users dal modello auth
 export * from "./models/auth";
 import { users, userRoleEnum, type UserRole, type UserStatus } from "./models/auth";
 
