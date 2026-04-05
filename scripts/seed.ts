@@ -2,54 +2,91 @@
 // Esegui con: npx tsx scripts/seed.ts
 
 import { db } from "../server/db";
-import { companies, leads, opportunities, pipelineStages, articles } from "../shared/schema";
+import { companies, leads, opportunities, pipelineStages, articles, userCompanies } from "../shared/schema";
+import { users } from "../shared/models/auth";
 import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 const companyAId = "company-a-test-id";
 const companyBId = "company-b-test-id";
+const adminUserId = "admin-test-user-id";
 
 async function seed() {
   console.log("🌱 Inizio seeding del database...");
 
   try {
-    // Crea Company A
+    // ─── 1. COMPANY ─────────────────────────────────────────────────────────────
     console.log("📦 Creazione Company A (Scaffolding Pro)...");
     await db.insert(companies).values({
       id: companyAId,
       name: "Scaffolding Pro S.r.l.",
+      email: "info@scaffoldingpro.it",
       vatNumber: "IT12345678901",
     }).onConflictDoNothing();
 
-    // Crea Company B  
     console.log("📦 Creazione Company B (Edil Service)...");
     await db.insert(companies).values({
       id: companyBId,
       name: "Edil Service S.p.A.",
+      email: "info@edilservice.it",
       vatNumber: "IT98765432109",
     }).onConflictDoNothing();
 
-    // Crea le fasi pipeline per Company A (se non esistono)
+    // ─── 2. UTENTE ADMIN DI TEST ─────────────────────────────────────────────────
+    console.log("👤 Creazione utente admin di test...");
+    const hashedPassword = await bcrypt.hash("password", 12);
+
+    await db.insert(users).values({
+      id: adminUserId,
+      email: "admin@test.it",
+      password: hashedPassword,
+      firstName: "Admin",
+      lastName: "Test",
+      role: "COMPANY_ADMIN",
+      status: "ACTIVE",
+    }).onConflictDoNothing();
+
+    // Collega utente alla company A
+    await db.insert(userCompanies).values({
+      userId: adminUserId,
+      companyId: companyAId,
+    }).onConflictDoNothing();
+
+    console.log("   ✓ Email: admin@test.it | Password: password | Ruolo: COMPANY_ADMIN");
+
+    // ─── 3. PIPELINE STAGES ──────────────────────────────────────────────────────
     console.log("🔧 Creazione fasi pipeline per Company A...");
     const existingStagesA = await db.select().from(pipelineStages).where(eq(pipelineStages.companyId, companyAId));
-    
+
     let stagesA: { id: string; name: string; order: number; color: string }[] = [];
-    
+
     if (existingStagesA.length === 0) {
       const defaultStagesA = [
-        { name: "Nuova Opportunità", order: 1, color: "#61CE85", companyId: companyAId },
-        { name: "Contattato", order: 2, color: "#4563FF", companyId: companyAId },
-        { name: "Sopralluogo", order: 3, color: "#F59E0B", companyId: companyAId },
-        { name: "Preventivo Inviato", order: 4, color: "#8B5CF6", companyId: companyAId },
-        { name: "Vinto", order: 5, color: "#059669", companyId: companyAId },
-        { name: "Perso", order: 6, color: "#EF4444", companyId: companyAId },
+        { name: "Nuovo",              order: 1, color: "#61CE85", companyId: companyAId },
+        { name: "In trattativa",      order: 2, color: "#4563FF", companyId: companyAId },
+        { name: "Proposta inviata",   order: 3, color: "#F59E0B", companyId: companyAId },
+        { name: "Chiuso vinto",       order: 4, color: "#059669", companyId: companyAId },
+        { name: "Chiuso perso",       order: 5, color: "#EF4444", companyId: companyAId },
       ];
-      
       stagesA = await db.insert(pipelineStages).values(defaultStagesA).returning();
     } else {
       stagesA = existingStagesA;
     }
 
-    // Lead per Company A (mix di COMPANY e PRIVATE)
+    // Pipeline stages per Company B
+    console.log("🔧 Creazione fasi pipeline per Company B...");
+    const existingStagesB = await db.select().from(pipelineStages).where(eq(pipelineStages.companyId, companyBId));
+    if (existingStagesB.length === 0) {
+      await db.insert(pipelineStages).values([
+        { name: "Nuovo",            order: 1, color: "#61CE85", companyId: companyBId },
+        { name: "In trattativa",    order: 2, color: "#4563FF", companyId: companyBId },
+        { name: "Proposta inviata", order: 3, color: "#F59E0B", companyId: companyBId },
+        { name: "Chiuso vinto",     order: 4, color: "#059669", companyId: companyBId },
+        { name: "Chiuso perso",     order: 5, color: "#EF4444", companyId: companyBId },
+      ]);
+    }
+
+    // ─── 4. LEADS ────────────────────────────────────────────────────────────────
     console.log("👥 Creazione contatti per Company A...");
     const leadsCompanyA = [
       {
@@ -116,16 +153,14 @@ async function seed() {
       await db.insert(leads).values(lead).onConflictDoNothing();
     }
 
-    // Opportunità per i lead di Company A
+    // ─── 5. OPPORTUNITÀ ───────────────────────────────────────────────────────────
     console.log("🎯 Creazione opportunità per Company A...");
-    
-    // Costruzioni Rossi ha 2 opportunità in stadi diversi
     const opportunitiesData = [
       {
         title: "Cantiere Via Roma 15",
         description: "Ristrutturazione edificio residenziale 5 piani",
         value: "25000",
-        stageId: stagesA.find(s => s.name === "Preventivo Inviato")?.id || stagesA[3]?.id,
+        stageId: stagesA.find(s => s.name === "Proposta inviata")?.id ?? stagesA[2]?.id,
         leadId: "lead-costruzioni-rossi",
         companyId: companyAId,
         probability: 70,
@@ -134,7 +169,7 @@ async function seed() {
         title: "Nuovo Complesso Residenziale Est",
         description: "Costruzione nuovo condominio 8 piani",
         value: "45000",
-        stageId: stagesA.find(s => s.name === "Sopralluogo")?.id || stagesA[2]?.id,
+        stageId: stagesA.find(s => s.name === "In trattativa")?.id ?? stagesA[1]?.id,
         leadId: "lead-costruzioni-rossi",
         companyId: companyAId,
         probability: 40,
@@ -143,7 +178,7 @@ async function seed() {
         title: "Villetta Bianchi",
         description: "Ristrutturazione villetta privata",
         value: "12000",
-        stageId: stagesA.find(s => s.name === "Contattato")?.id || stagesA[1]?.id,
+        stageId: stagesA.find(s => s.name === "Nuovo")?.id ?? stagesA[0]?.id,
         leadId: "lead-laura-bianchi",
         companyId: companyAId,
         probability: 50,
@@ -152,19 +187,10 @@ async function seed() {
         title: "Stabilimento Industriale Nord",
         description: "Manutenzione capannone industriale",
         value: "18500",
-        stageId: stagesA.find(s => s.name === "Vinto")?.id || stagesA[4]?.id,
+        stageId: stagesA.find(s => s.name === "Chiuso vinto")?.id ?? stagesA[3]?.id,
         leadId: "lead-edil-green",
         companyId: companyAId,
         probability: 100,
-      },
-      {
-        title: "Eco-Residence Green Valley",
-        description: "Costruzione residenziale green",
-        value: "55000",
-        stageId: stagesA.find(s => s.name === "Nuova Opportunità")?.id || stagesA[0]?.id,
-        leadId: "lead-edil-green",
-        companyId: companyAId,
-        probability: 20,
       },
     ];
 
@@ -176,7 +202,7 @@ async function seed() {
 
     // Lead per Company B
     console.log("👥 Creazione contatti per Company B...");
-    const leadsCompanyB = [
+    await db.insert(leads).values([
       {
         id: "lead-impresa-marino",
         entityType: "COMPANY" as const,
@@ -208,250 +234,38 @@ async function seed() {
         notes: "Privato con grande villa in ristrutturazione",
         companyId: companyBId,
       },
-    ];
+    ]).onConflictDoNothing();
 
-    for (const lead of leadsCompanyB) {
-      await db.insert(leads).values(lead).onConflictDoNothing();
-    }
-
-    // Seeding Articoli Listino per Company A
+    // ─── 6. ARTICOLI LISTINO ─────────────────────────────────────────────────────
     console.log("📋 Creazione listino articoli per Company A...");
-    
-    // Elimina articoli esistenti per Company A e ricrea con nuovi dati
     await db.delete(articles).where(eq(articles.companyId, companyAId));
-    
-    const articlesData = [
-      // Voci Checklist Preventivatore (14 voci principali) - RENTAL con scaglioni
-      { 
-        code: "PON-001", 
-        name: "Ponteggio", 
-        description: "Ponteggio prefabbricato standard",
-        unitType: "MQ" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "8.50",
-        pricingData: { 
-          firstMonthPrice: 8.50, 
-          dailyExtraPrice: 0.28,
-          tiers: [
-            { months: "1-2", price: 8.50 },
-            { months: "3-5", price: 7.50 },
-            { months: "6+", price: 6.50 }
-          ]
-        },
-        isChecklistItem: 1, 
-        checklistOrder: 1, 
-        companyId: companyAId 
-      },
-      { 
-        code: "PDC-002", 
-        name: "Piani di carico", 
-        description: "Piani di carico per materiali",
-        unitType: "CAD" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "45.00",
-        pricingData: { firstMonthPrice: 45.00, dailyExtraPrice: 1.50 },
-        isChecklistItem: 1, 
-        checklistOrder: 2, 
-        companyId: companyAId 
-      },
-      { 
-        code: "CIE-003", 
-        name: "Cielo", 
-        description: "Copertura superiore ponteggio",
-        unitType: "MQ" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "12.00",
-        pricingData: { firstMonthPrice: 12.00, dailyExtraPrice: 0.40 },
-        isChecklistItem: 1, 
-        checklistOrder: 3, 
-        companyId: companyAId 
-      },
-      { 
-        code: "PAR-004", 
-        name: "Parapetti", 
-        description: "Parapetti di sicurezza",
-        unitType: "ML" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "6.00",
-        pricingData: { firstMonthPrice: 6.00, dailyExtraPrice: 0.20 },
-        isChecklistItem: 1, 
-        checklistOrder: 4, 
-        companyId: companyAId 
-      },
-      { 
-        code: "MEN-005", 
-        name: "Mensole", 
-        description: "Mensole di appoggio",
-        unitType: "CAD" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "35.00",
-        pricingData: { firstMonthPrice: 35.00, dailyExtraPrice: 1.17 },
-        isChecklistItem: 1, 
-        checklistOrder: 5, 
-        companyId: companyAId 
-      },
-      { 
-        code: "MON-006", 
-        name: "Montacarichi", 
-        description: "Sistema montacarichi elettrico",
-        unitType: "CAD" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "250.00",
-        pricingData: { firstMonthPrice: 250.00, dailyExtraPrice: 8.33 },
-        isChecklistItem: 1, 
-        checklistOrder: 6, 
-        companyId: companyAId 
-      },
-      { 
-        code: "MCO-007", 
-        name: "Monocolonna", 
-        description: "Struttura monocolonna",
-        unitType: "CAD" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "180.00",
-        pricingData: { firstMonthPrice: 180.00, dailyExtraPrice: 6.00 },
-        isChecklistItem: 1, 
-        checklistOrder: 7, 
-        companyId: companyAId 
-      },
-      { 
-        code: "BCO-008", 
-        name: "Bicolonna", 
-        description: "Struttura bicolonna",
-        unitType: "CAD" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "320.00",
-        pricingData: { firstMonthPrice: 320.00, dailyExtraPrice: 10.67 },
-        isChecklistItem: 1, 
-        checklistOrder: 8, 
-        companyId: companyAId 
-      },
-      { 
-        code: "COP-009", 
-        name: "Copertura", 
-        description: "Telo copertura protettiva",
-        unitType: "MQ" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "15.00",
-        pricingData: { firstMonthPrice: 15.00, dailyExtraPrice: 0.50 },
-        isChecklistItem: 1, 
-        checklistOrder: 9, 
-        companyId: companyAId 
-      },
-      { 
-        code: "ALL-010", 
-        name: "Allarme", 
-        description: "Sistema allarme antintrusione",
-        unitType: "CAD" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "75.00",
-        pricingData: { firstMonthPrice: 75.00, dailyExtraPrice: 2.50 },
-        isChecklistItem: 1, 
-        checklistOrder: 10, 
-        companyId: companyAId 
-      },
-      { 
-        code: "MAN-011", 
-        name: "Mantovana", 
-        description: "Mantovana di protezione",
-        unitType: "ML" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "18.00",
-        pricingData: { firstMonthPrice: 18.00, dailyExtraPrice: 0.60 },
-        isChecklistItem: 1, 
-        checklistOrder: 11, 
-        companyId: companyAId 
-      },
-      { 
-        code: "TUG-012", 
-        name: "Tubo e giunto", 
-        description: "Sistema tubo e giunto",
-        unitType: "ML" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "4.50",
-        pricingData: { firstMonthPrice: 4.50, dailyExtraPrice: 0.15 },
-        isChecklistItem: 1, 
-        checklistOrder: 12, 
-        companyId: companyAId 
-      },
-      { 
-        code: "TUT-013", 
-        name: "Tubo + tavola", 
-        description: "Sistema tubo e tavola",
-        unitType: "ML" as const, 
-        pricingLogic: "RENTAL" as const, 
-        basePrice: "7.00",
-        pricingData: { firstMonthPrice: 7.00, dailyExtraPrice: 0.23 },
-        isChecklistItem: 1, 
-        checklistOrder: 13, 
-        companyId: companyAId 
-      },
-      { 
-        code: "CES-014", 
-        name: "Cesta", 
-        description: "Cesta per materiali",
-        unitType: "CAD" as const, 
-        pricingLogic: "EXTRA" as const, 
-        basePrice: "50.00",
-        pricingData: { price: 50.00 },
-        isChecklistItem: 1, 
-        checklistOrder: 14, 
-        companyId: companyAId 
-      },
-      
-      // Voci di servizio
-      { 
-        code: "TRA-015", 
-        name: "Trasporto Camion Grande", 
-        description: "Trasporto con camion grande capacità",
-        unitType: "NUM" as const, 
-        pricingLogic: "TRANSPORT" as const, 
-        basePrice: "150.00",
-        pricingData: { fixedPrice: 150.00, pricePerKm: 1.20, capacity: 3000 },
-        isChecklistItem: 0, 
-        checklistOrder: 100, 
-        companyId: companyAId 
-      },
-      { 
-        code: "MOP-016", 
-        name: "Manodopera Montaggio", 
-        description: "Servizio montaggio e smontaggio",
-        unitType: "MQ" as const, 
-        pricingLogic: "LABOR" as const, 
-        basePrice: "0.00",
-        pricingData: { mountPrice: 12.00, dismountPrice: 8.00 },
-        isChecklistItem: 0, 
-        checklistOrder: 101, 
-        companyId: companyAId 
-      },
-      { 
-        code: "RDC-017", 
-        name: "Relazione di Calcolo", 
-        description: "Documentazione tecnica obbligatoria",
-        unitType: "NUM" as const, 
-        pricingLogic: "DOCUMENT" as const, 
-        basePrice: "350.00",
-        pricingData: { price: 350.00 },
-        isChecklistItem: 0, 
-        checklistOrder: 102, 
-        companyId: companyAId 
-      },
-    ];
 
-    for (const article of articlesData) {
-      await db.insert(articles).values(article);
-    }
-    console.log("   - Creati 17 articoli nel listino (14 checklist + 3 servizi)")
+    await db.insert(articles).values([
+      { code: "PON-001", name: "Ponteggio",              description: "Ponteggio prefabbricato standard",   unitType: "MQ" as const, pricingLogic: "RENTAL" as const,    basePrice: "8.50",   pricingData: { firstMonthPrice: 8.50,  dailyExtraPrice: 0.28 }, isChecklistItem: 1, checklistOrder: 1,   companyId: companyAId },
+      { code: "PDC-002", name: "Piani di carico",        description: "Piani di carico per materiali",      unitType: "CAD" as const, pricingLogic: "RENTAL" as const,    basePrice: "45.00",  pricingData: { firstMonthPrice: 45.00, dailyExtraPrice: 1.50 }, isChecklistItem: 1, checklistOrder: 2,   companyId: companyAId },
+      { code: "CIE-003", name: "Cielo",                  description: "Copertura superiore ponteggio",      unitType: "MQ" as const, pricingLogic: "RENTAL" as const,    basePrice: "12.00",  pricingData: { firstMonthPrice: 12.00, dailyExtraPrice: 0.40 }, isChecklistItem: 1, checklistOrder: 3,   companyId: companyAId },
+      { code: "PAR-004", name: "Parapetti",              description: "Parapetti di sicurezza",             unitType: "ML" as const, pricingLogic: "RENTAL" as const,    basePrice: "6.00",   pricingData: { firstMonthPrice: 6.00,  dailyExtraPrice: 0.20 }, isChecklistItem: 1, checklistOrder: 4,   companyId: companyAId },
+      { code: "MAN-005", name: "Mantovana",              description: "Mantovana di protezione",            unitType: "ML" as const, pricingLogic: "RENTAL" as const,    basePrice: "18.00",  pricingData: { firstMonthPrice: 18.00, dailyExtraPrice: 0.60 }, isChecklistItem: 1, checklistOrder: 5,   companyId: companyAId },
+      { code: "TRA-006", name: "Trasporto Camion",       description: "Trasporto con camion grande",        unitType: "NUM" as const, pricingLogic: "TRANSPORT" as const, basePrice: "150.00", pricingData: { fixedPrice: 150.00, pricePerKm: 1.20 },         isChecklistItem: 0, checklistOrder: 100, companyId: companyAId },
+      { code: "RDC-007", name: "Relazione di Calcolo",   description: "Documentazione tecnica obbligatoria",unitType: "NUM" as const, pricingLogic: "DOCUMENT" as const,  basePrice: "350.00", pricingData: { price: 350.00 },                                 isChecklistItem: 0, checklistOrder: 101, companyId: companyAId },
+    ]);
 
-    console.log("✅ Seeding completato con successo!");
-    console.log("📊 Creati:");
-    console.log("   - 2 aziende (Company A e Company B)");
-    console.log("   - 3 lead per Company A con 5 opportunità in varie fasi");
-    console.log("   - 2 lead per Company B");
-    console.log("   - 16 articoli nel listino (14 checklist + 2 servizi)");
+    // ─── RIEPILOGO ────────────────────────────────────────────────────────────────
     console.log("");
-    console.log("💡 Esempio di 1 Lead con multiple Opportunità:");
-    console.log("   Marco Rossi ha 2 opportunità: 'Cantiere Via Roma 15' e 'Nuovo Complesso Residenziale Est'");
+    console.log("✅ Seeding completato con successo!");
+    console.log("");
+    console.log("📊 Creati:");
+    console.log("   - 2 aziende (Scaffolding Pro + Edil Service)");
+    console.log("   - 1 utente admin → admin@test.it / password");
+    console.log("   - 5 pipeline stages per ciascuna azienda");
+    console.log("   - 3 lead per Company A con 4 opportunità");
+    console.log("   - 2 lead per Company B");
+    console.log("   - 7 articoli nel listino");
+    console.log("");
+    console.log("🔑 Credenziali di accesso:");
+    console.log("   Email:    admin@test.it");
+    console.log("   Password: password");
+    console.log("   Ruolo:    COMPANY_ADMIN");
 
   } catch (error) {
     console.error("❌ Errore durante il seeding:", error);
