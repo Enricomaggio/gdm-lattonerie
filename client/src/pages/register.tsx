@@ -1,81 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const MATRIX_CHARS = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFMORPHEUS";
-
-function MatrixRain({ canvasRef }: { canvasRef: React.RefObject<HTMLCanvasElement | null> }) {
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    const fontSize = 14;
-    const columns = Math.floor(canvas.width / fontSize);
-    const drops: number[] = new Array(columns).fill(1).map(() => Math.random() * -100);
-
-    const draw = () => {
-      ctx.fillStyle = "rgba(5, 11, 65, 0.05)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      for (let i = 0; i < drops.length; i++) {
-        const char = MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)];
-        const x = i * fontSize;
-        const y = drops[i] * fontSize;
-
-        const brightness = Math.random();
-        if (brightness > 0.7) {
-          ctx.fillStyle = "rgba(97, 206, 133, 0.9)";
-          ctx.shadowColor = "#61CE85";
-          ctx.shadowBlur = 8;
-        } else if (brightness > 0.3) {
-          ctx.fillStyle = "rgba(69, 99, 255, 0.6)";
-          ctx.shadowColor = "#4563FF";
-          ctx.shadowBlur = 4;
-        } else {
-          ctx.fillStyle = "rgba(69, 99, 255, 0.25)";
-          ctx.shadowBlur = 0;
-        }
-
-        ctx.font = `${fontSize}px monospace`;
-        ctx.fillText(char, x, y);
-        ctx.shadowBlur = 0;
-
-        if (y > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      }
-    };
-
-    const interval = setInterval(draw, 50);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("resize", resizeCanvas);
-    };
-  }, [canvasRef]);
-
-  return null;
-}
+import { APP_CONFIG } from "@/lib/config";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function RegisterPage() {
   const [, setLocation] = useLocation();
   const { register, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -125,7 +61,7 @@ export default function RegisterPage() {
       await register(email, password, firstName, lastName);
       toast({
         title: "Registrazione completata",
-        description: "Benvenuto in Morpheus!",
+        description: "Account creato con successo. Ora puoi accedere.",
       });
       setLocation("/dashboard");
     } catch (error: any) {
@@ -140,209 +76,131 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: "#050B41" }}>
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-        style={{ zIndex: 0 }}
-      />
-      <MatrixRain canvasRef={canvasRef} />
-
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
-        <div
-          className={`w-full max-w-sm transition-all duration-700 ${
-            fadeIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
-          <div className="text-center mb-8">
-            <h2
-              className="text-3xl font-bold tracking-widest mb-1"
-              style={{
-                color: "#61CE85",
-                fontFamily: "'Courier New', monospace",
-                textShadow: "0 0 15px rgba(97, 206, 133, 0.4)",
-              }}
-              data-testid="text-register-title"
-            >
-              MORPHEUS
-            </h2>
-            <p
-              className="text-xs"
-              style={{ color: "rgba(255,255,255,0.4)", fontFamily: "'Courier New', monospace" }}
-            >
-              Crea il tuo account per entrare nel sistema
-            </p>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className={`w-full max-w-md transition-opacity duration-700 ${fadeIn ? "opacity-100" : "opacity-0"}`}>
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img src="/logo-ponteggi.png" alt={APP_CONFIG.appName} className="h-12 object-contain" />
           </div>
+          <CardTitle data-testid="text-register-title">Crea account</CardTitle>
+          <CardDescription>
+            Crea un nuovo account per accedere a <span className="font-medium">{APP_CONFIG.appName}</span>.
+          </CardDescription>
+        </CardHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div
-              className="rounded-md p-6 space-y-4"
-              style={{
-                backgroundColor: "rgba(5, 11, 65, 0.85)",
-                border: "1px solid rgba(69, 99, 255, 0.3)",
-                boxShadow: "0 0 30px rgba(69, 99, 255, 0.1)",
-              }}
-            >
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label
-                    className="text-xs font-mono uppercase tracking-wider"
-                    style={{ color: "#61CE85" }}
-                    htmlFor="reg-firstName"
-                  >
-                    Nome
-                  </label>
-                  <Input
-                    id="reg-firstName"
-                    type="text"
-                    placeholder="Mario"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    disabled={isLoading}
-                    className="border-0 rounded-md font-mono text-sm placeholder:opacity-30"
-                    style={{
-                      backgroundColor: "rgba(0, 0, 0, 0.4)",
-                      color: "#ffffff",
-                      borderBottom: "1px solid rgba(97, 206, 133, 0.3)",
-                    }}
-                    data-testid="input-firstName"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label
-                    className="text-xs font-mono uppercase tracking-wider"
-                    style={{ color: "#61CE85" }}
-                    htmlFor="reg-lastName"
-                  >
-                    Cognome
-                  </label>
-                  <Input
-                    id="reg-lastName"
-                    type="text"
-                    placeholder="Rossi"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    disabled={isLoading}
-                    className="border-0 rounded-md font-mono text-sm placeholder:opacity-30"
-                    style={{
-                      backgroundColor: "rgba(0, 0, 0, 0.4)",
-                      color: "#ffffff",
-                      borderBottom: "1px solid rgba(97, 206, 133, 0.3)",
-                    }}
-                    data-testid="input-lastName"
-                  />
-                </div>
-              </div>
-
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label
-                  className="text-xs font-mono uppercase tracking-wider"
-                  style={{ color: "#61CE85" }}
-                  htmlFor="reg-email"
-                >
-                  Email
+                <label className="text-sm font-medium" htmlFor="reg-firstName">
+                  Nome
                 </label>
                 <Input
-                  id="reg-email"
-                  type="email"
-                  placeholder="neo@morpheus.it"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  className="border-0 rounded-md font-mono text-sm placeholder:opacity-30"
-                  style={{
-                    backgroundColor: "rgba(0, 0, 0, 0.4)",
-                    color: "#ffffff",
-                    borderBottom: "1px solid rgba(97, 206, 133, 0.3)",
-                  }}
-                  data-testid="input-email"
+                  id="reg-firstName"
+                  type="text"
+                  placeholder="Mario"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  disabled={isLoading || authLoading}
+                  autoComplete="given-name"
+                  data-testid="input-firstName"
                 />
               </div>
 
               <div className="space-y-2">
-                <label
-                  className="text-xs font-mono uppercase tracking-wider"
-                  style={{ color: "#61CE85" }}
-                  htmlFor="reg-password"
-                >
-                  Password
+                <label className="text-sm font-medium" htmlFor="reg-lastName">
+                  Cognome
                 </label>
                 <Input
-                  id="reg-password"
-                  type="password"
-                  placeholder="Minimo 6 caratteri"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  className="border-0 rounded-md font-mono text-sm placeholder:opacity-30"
-                  style={{
-                    backgroundColor: "rgba(0, 0, 0, 0.4)",
-                    color: "#ffffff",
-                    borderBottom: "1px solid rgba(97, 206, 133, 0.3)",
-                  }}
-                  data-testid="input-password"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  className="text-xs font-mono uppercase tracking-wider"
-                  style={{ color: "#61CE85" }}
-                  htmlFor="reg-confirmPassword"
-                >
-                  Conferma Password
-                </label>
-                <Input
-                  id="reg-confirmPassword"
-                  type="password"
-                  placeholder="Ripeti la password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isLoading}
-                  className="border-0 rounded-md font-mono text-sm placeholder:opacity-30"
-                  style={{
-                    backgroundColor: "rgba(0, 0, 0, 0.4)",
-                    color: "#ffffff",
-                    borderBottom: "1px solid rgba(97, 206, 133, 0.3)",
-                  }}
-                  data-testid="input-confirmPassword"
+                  id="reg-lastName"
+                  type="text"
+                  placeholder="Rossi"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  disabled={isLoading || authLoading}
+                  autoComplete="family-name"
+                  data-testid="input-lastName"
                 />
               </div>
             </div>
 
-            <button
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="reg-email">
+                Email
+              </label>
+              <Input
+                id="reg-email"
+                type="email"
+                placeholder="nome@azienda.it"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading || authLoading}
+                autoComplete="email"
+                inputMode="email"
+                data-testid="input-email"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="reg-password">
+                Password
+              </label>
+              <Input
+                id="reg-password"
+                type="password"
+                placeholder="Minimo 6 caratteri"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading || authLoading}
+                autoComplete="new-password"
+                data-testid="input-password"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="reg-confirmPassword">
+                Conferma password
+              </label>
+              <Input
+                id="reg-confirmPassword"
+                type="password"
+                placeholder="Ripeti la password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isLoading || authLoading}
+                autoComplete="new-password"
+                data-testid="input-confirmPassword"
+              />
+            </div>
+
+            <Button
               type="submit"
+              className="w-full"
               disabled={isLoading || authLoading}
-              className="w-full py-3 rounded-md font-mono text-sm font-bold uppercase tracking-wider transition-opacity duration-300 hover:opacity-90 disabled:opacity-50"
-              style={{
-                background: "linear-gradient(135deg, #61CE85 0%, #3da85e 100%)",
-                color: "#050B41",
-                boxShadow: "0 0 20px rgba(97, 206, 133, 0.3)",
-              }}
               data-testid="button-register"
             >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Registrazione in corso...
-                </span>
+              {isLoading || authLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creazione account...
+                </>
               ) : (
-                "Crea Account"
+                "Crea account"
               )}
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
+              variant="link"
+              className="w-full"
               onClick={() => setLocation("/login")}
-              className="w-full text-center text-xs font-mono transition-colors duration-200"
-              style={{ color: "rgba(255,255,255,0.4)" }}
               data-testid="link-login"
             >
-              Hai già un account? <span style={{ color: "#4563FF" }}>Accedi</span>
-            </button>
+              Hai già un account? Accedi
+            </Button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
