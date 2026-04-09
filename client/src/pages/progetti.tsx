@@ -80,7 +80,6 @@ import {
   Pencil,
   Trash2,
   CheckSquare,
-  Eye,
   StickyNote,
   ChevronLeft,
   ChevronRight,
@@ -92,7 +91,6 @@ import type { Project, ProjectStage, WorkType } from "@shared/schema";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { SchedaCantiereModal } from "@/components/scheda-cantiere-modal";
-import { QuotePreviewModal } from "@/components/quote-preview-modal";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 
 type CantiereStatus =
@@ -575,8 +573,6 @@ export default function ProgettiPage() {
   const [, navigate] = useLocation();
   const [selectedProject, setSelectedProject] = useState<ProjectWithRelations | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [quotePreviewId, setQuotePreviewId] = useState<number | null>(null);
-  const [quotePreviewOpen, setQuotePreviewOpen] = useState(false);
   const { setDirty: setProjectDirty, handleOpenChange: handleProjectConfirmClose, ConfirmCloseDialog: ProjectConfirmCloseDialog } = useConfirmClose();
   const [isSchedaOpen, setIsSchedaOpen] = useState(false);
   const [activeProject, setActiveProject] = useState<ProjectWithRelations | null>(null);
@@ -1188,23 +1184,6 @@ export default function ProgettiPage() {
                       {(projectDetail?.quoteNumber || selectedProject.quoteNumber) && (
                         <p className="text-sm text-muted-foreground" data-testid="text-detail-quote-number">
                           Preventivo: <span className="font-semibold text-foreground">{projectDetail?.quoteNumber || selectedProject.quoteNumber}</span>
-                          {(projectDetail?.quoteId || selectedProject.quoteId) && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const id = projectDetail?.quoteId || selectedProject.quoteId;
-                                if (id) {
-                                  setQuotePreviewId(id);
-                                  setQuotePreviewOpen(true);
-                                }
-                              }}
-                              className="text-primary hover:text-primary/80 transition-colors ml-2 inline-flex items-center"
-                              title="Visualizza preventivo"
-                              data-testid="button-detail-view-quote"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                          )}
                         </p>
                       )}
                     </div>
@@ -1579,11 +1558,6 @@ export default function ProgettiPage() {
       )}
       {ProjectConfirmCloseDialog}
 
-      <QuotePreviewModal
-        quoteId={quotePreviewId}
-        isOpen={quotePreviewOpen}
-        onClose={() => { setQuotePreviewOpen(false); setQuotePreviewId(null); }}
-      />
     </DashboardLayout>
   );
 }

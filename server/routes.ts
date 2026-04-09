@@ -4,7 +4,6 @@ import { storage } from "./storage";
 import { buildAccessContext } from "./utils/accessContext";
 import { leadsRouter } from "./routers/leads.router";
 import { opportunitiesRouter } from "./routers/opportunities.router";
-import { quotesRouter } from "./routers/quotes.router";
 import { companyRouter } from "./routers/company.router";
 import { authRouter } from "./routers/auth.router";
 import { usersRouter } from "./routers/users.router";
@@ -29,7 +28,6 @@ export async function registerRoutes(
   // ============ MODULAR ROUTERS ============
   app.use('/api', leadsRouter);
   app.use('/api', opportunitiesRouter);
-  app.use('/api', quotesRouter);
   app.use('/api', projectsRouter);
   app.use('/api', adminRouter);
   app.use('/api', companyRouter);

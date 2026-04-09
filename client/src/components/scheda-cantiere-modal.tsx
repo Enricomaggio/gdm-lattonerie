@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { QuotePreviewModal } from "@/components/quote-preview-modal";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +13,6 @@ import {
   Loader2,
   ExternalLink,
   Euro,
-  Eye,
   MapPin,
   HardHat,
   AlertTriangle,
@@ -235,7 +233,6 @@ export function SchedaCantiereModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [quotePreviewOpen, setQuotePreviewOpen] = useState(false);
 
   const { data, isLoading } = useQuery<SiteDetails>({
     queryKey: ["/api/projects", projectId, "site-details"],
@@ -558,15 +555,6 @@ export function SchedaCantiereModal({
                     <div className="p-2 rounded-md bg-muted/30 border mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <span className="text-xs font-medium">{quote.number || "Preventivo"}</span>
-                        <button
-                          onClick={() => setQuotePreviewOpen(true)}
-                          className="text-primary hover:text-primary/80 transition-colors"
-                          title="Visualizza preventivo"
-                          data-testid="button-scheda-view-quote"
-                          type="button"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
                       </div>
                       {quote.totalAmount && (
                         <span className="text-sm font-bold text-primary" data-testid="scheda-quote-total">
@@ -655,13 +643,6 @@ export function SchedaCantiereModal({
       </DialogContent>
     </Dialog>
 
-    {quote && (
-      <QuotePreviewModal
-        quoteId={quote.id}
-        isOpen={quotePreviewOpen}
-        onClose={() => setQuotePreviewOpen(false)}
-      />
-    )}
     </>
   );
 }

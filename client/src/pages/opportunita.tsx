@@ -1141,17 +1141,7 @@ export default function OpportunitaPage() {
     return map;
   }, [assignableUsers]);
 
-  const { data: latestQuoteNumbers = [] } = useQuery<{ opportunityId: string; number: string }[]>({
-    queryKey: ["/api/quotes/latest-numbers"],
-  });
-
-  const quoteNumbersMap = useMemo(() => {
-    const map = new Map<string, string>();
-    latestQuoteNumbers.forEach((q) => {
-      map.set(q.opportunityId, q.number);
-    });
-    return map;
-  }, [latestQuoteNumbers]);
+  const quoteNumbersMap = useMemo(() => new Map<string, string>(), []);
 
   const { data: activeManualReminderOpportunityIds = [] } = useQuery<string[]>({
     queryKey: ["/api/reminders/opportunities-with-active-manual"],
@@ -1357,25 +1347,6 @@ export default function OpportunitaPage() {
     },
   });
 
-  const deleteQuoteMutation = useMutation({
-    mutationFn: async (quoteId: string) => {
-      await apiRequest("DELETE", `/api/quotes/${quoteId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/opportunities", selectedOpportunity?.id, "quotes"] });
-      toast({
-        title: "Preventivo eliminato",
-        description: "Il preventivo è stato eliminato con successo.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Errore",
-        description: "Impossibile eliminare il preventivo. Riprova.",
-        variant: "destructive",
-      });
-    },
-  });
 
   const moveOpportunityMutation = useMutation({
     mutationFn: async ({ opportunityId, stageId }: { opportunityId: string; stageId: string }) => {
@@ -3109,22 +3080,6 @@ export default function OpportunitaPage() {
                                     data-testid={`button-view-quote-${quote.id}`}
                                   >
                                     <Eye className="w-3.5 h-3.5" />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-100"
-                                    disabled={deleteQuoteMutation.isPending}
-                                    onClick={() => {
-                                      if (confirm(`Sei sicuro di voler eliminare il preventivo "${quote.number || 'senza numero'}"? Questa azione è irreversibile.`)) {
-                                        deleteQuoteMutation.mutate(quote.id);
-                                      }
-                                    }}
-                                    title="Elimina preventivo"
-                                    data-testid={`button-delete-quote-${quote.id}`}
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
                                   </Button>
                                 </div>
                               </div>

@@ -140,7 +140,6 @@ export interface IStorage {
   createQuoteWithNextNumber(data: Omit<InsertQuote, 'number'>, customNumber?: string): Promise<Quote>;
   updateQuote(id: string, companyId: string, data: Partial<InsertQuote>): Promise<Quote | undefined>;
   deleteQuote(id: string, companyId: string): Promise<boolean>;
-  getNextQuoteNumber(companyId: string): Promise<string>;
   
   // Quote Items (Righe Preventivo)
   getQuoteItems(quoteId: string): Promise<QuoteItem[]>;
@@ -1374,28 +1373,6 @@ export class DatabaseStorage implements IStorage {
       .delete(quotes)
       .where(and(eq(quotes.id, id), eq(quotes.companyId, companyId)));
     return (result.rowCount ?? 0) > 0;
-  }
-
-  async getNextQuoteNumber(companyId: string): Promise<string> {
-    const year = new Date().getFullYear();
-    const allQuotes = await db
-      .select({ number: quotes.number })
-      .from(quotes)
-      .where(eq(quotes.companyId, companyId));
-    
-    let maxNum = 299;
-    for (const q of allQuotes) {
-      if (!q.number) continue;
-      if (!q.number.endsWith(`-${year}`) && !q.number.startsWith(`PREV-${year}`)) continue;
-      const match = q.number.match(/^(?:PREV-\d{4}-)?(\d+)/);
-      if (match) {
-        const num = parseInt(match[1], 10);
-        if (num > maxNum) maxNum = num;
-      }
-    }
-    
-    const nextNum = maxNum + 1;
-    return `${String(nextNum).padStart(3, '0')}-${year}`;
   }
 
   // ============ QUOTE ITEMS (Righe Preventivo) ============
