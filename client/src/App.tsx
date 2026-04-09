@@ -9,6 +9,7 @@ import { CompanyProvider } from "@/lib/company-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { APP_CONFIG } from "@/lib/config";
 
 class ErrorBoundary extends Component<
   { children: ReactNode },
@@ -210,16 +211,22 @@ function AppRouter() {
         <ProtectedRoute component={CatalogPage} />
       </Route>
       <Route path="/progetti">
-        <RoleProtectedRoute component={ProgettiPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"]} />
+        {APP_CONFIG.moduleProgetti
+          ? <RoleProtectedRoute component={ProgettiPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"]} />
+          : <Redirect to="/dashboard" />}
       </Route>
       <Route path="/progetti/:projectId/gantt">
-        <RoleProtectedRoute component={GanttPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"]} />
+        {APP_CONFIG.moduleProgetti
+          ? <RoleProtectedRoute component={GanttPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"]} />
+          : <Redirect to="/dashboard" />}
       </Route>
       <Route path="/proxit">
         <RoleProtectedRoute component={ProxitPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"]} />
       </Route>
       <Route path="/sal">
-        <RoleProtectedRoute component={SalPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"]} />
+        {APP_CONFIG.moduleSAL
+          ? <RoleProtectedRoute component={SalPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN"]} />
+          : <Redirect to="/dashboard" />}
       </Route>
       <Route path="/mappa">
         <RoleProtectedRoute component={MappaPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN", "SALES_AGENT"]} />
