@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth, getAuthToken } from "@/lib/auth";
+import { APP_CONFIG } from "@/lib/config";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -1497,7 +1498,7 @@ export default function SettingsPage() {
                       type="email"
                       value={companyForm.email}
                       onChange={(e) => handleCompanyChange("email", e.target.value)}
-                      placeholder="info@dadoponteggi.it"
+                      placeholder="info@azienda.it"
                       
                     />
                   </div>
@@ -1576,11 +1577,11 @@ export default function SettingsPage() {
           </Card>
         )}
 
-        {isAdmin && <BillingProfilesSection />}
+        {isAdmin && APP_CONFIG.moduleBillingProfiles && <BillingProfilesSection />}
 
-        {isAdmin && <ExternalEngineersSection />}
+        {isAdmin && APP_CONFIG.moduleExternalEngineers && <ExternalEngineersSection />}
 
-        {isAdmin && <ClausoleSection />}
+        {isAdmin && APP_CONFIG.moduleClausole && <ClausoleSection />}
 
         <NotificationPreferencesSection userRole={user?.role || ""} />
 

@@ -1662,7 +1662,7 @@ export function QuotePdfDocument({
             In base alle Normative vigenti si richiede gentilmente di inviare il
             P.S.C. (Piano di sicurezza e coordinamento) del cantiere
             all'accettazione dell'offerta all'indirizzo e-mail:
-            tecnico@dadoponteggi.it
+            tecnico@azienda.it
           </Text>
         </View>
 
