@@ -157,7 +157,7 @@ function BillingProfilesSection() {
             data-testid="input-billing-company-name"
             value={formData.companyName}
             onChange={(e) => handleChange("companyName", e.target.value)}
-            placeholder="Es. Da.Do Partners s.r.l."
+            placeholder="Es. Nome Azienda S.R.L."
           />
         </div>
         <div className="space-y-2">
@@ -166,7 +166,7 @@ function BillingProfilesSection() {
             data-testid="input-billing-vat"
             value={formData.vatNumber}
             onChange={(e) => handleChange("vatNumber", e.target.value)}
-            placeholder="IT05545130261"
+            placeholder="IT00000000000"
           />
         </div>
       </div>
@@ -1452,7 +1452,7 @@ export default function SettingsPage() {
                       data-testid="input-company-name"
                       value={companyForm.name}
                       onChange={(e) => handleCompanyChange("name", e.target.value)}
-                      placeholder="DA.DO. PONTEGGI S.R.L."
+                      placeholder="Nome Azienda S.R.L."
                       
                     />
                   </div>
@@ -1466,7 +1466,7 @@ export default function SettingsPage() {
                       data-testid="input-company-address"
                       value={companyForm.address}
                       onChange={(e) => handleCompanyChange("address", e.target.value)}
-                      placeholder="Via Montello, 56 - 31036 Istrana (TV)"
+                      placeholder="Via Roma, 1 - 00100 Roma (RM)"
                       
                     />
                   </div>
@@ -1483,7 +1483,7 @@ export default function SettingsPage() {
                       data-testid="input-company-phone"
                       value={companyForm.phone}
                       onChange={(e) => handleCompanyChange("phone", e.target.value)}
-                      placeholder="0422307911"
+                      placeholder="+39 000 000 0000"
                       
                     />
                   </div>
@@ -1512,7 +1512,7 @@ export default function SettingsPage() {
                       data-testid="input-company-vat"
                       value={companyForm.vatNumber}
                       onChange={(e) => handleCompanyChange("vatNumber", e.target.value)}
-                      placeholder="IT05315560267"
+                      placeholder="IT00000000000"
                       
                     />
                   </div>
@@ -1523,7 +1523,7 @@ export default function SettingsPage() {
                       data-testid="input-company-fiscal"
                       value={companyForm.fiscalCode}
                       onChange={(e) => handleCompanyChange("fiscalCode", e.target.value)}
-                      placeholder="05315560267"
+                      placeholder="00000000000"
                       
                     />
                   </div>
@@ -1551,7 +1551,7 @@ export default function SettingsPage() {
                       data-testid="input-company-iban"
                       value={companyForm.iban}
                       onChange={(e) => handleCompanyChange("iban", e.target.value)}
-                      placeholder="IT74S0200861900000107287061"
+                      placeholder="IT00A0000000000000000000000"
                       
                     />
                   </div>
