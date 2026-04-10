@@ -990,7 +990,7 @@ export default function LeadDetailPage() {
                 Amministrazione
               </TabsTrigger>
             )}
-            {(watchEntityType === "COMPANY" || lead?.entityType === "COMPANY") && (
+            {false && (watchEntityType === "COMPANY" || lead?.entityType === "COMPANY") && (
               <TabsTrigger value="finanziaria" data-testid="tab-finanziaria">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Analisi Finanziaria
@@ -1102,6 +1102,7 @@ export default function LeadDetailPage() {
                                 )}
                               />
                             </div>
+                            {false && (
                             <div className="col-span-2">
                               <Button
                                 type="button"
@@ -1124,6 +1125,7 @@ export default function LeadDetailPage() {
                                 {creditsafeFetchMutation.isPending ? "Verifica..." : "CreditSafe"}
                               </Button>
                             </div>
+                            )}
                             <div className="col-span-2">
                               <Button
                                 type="submit"
@@ -1779,6 +1781,7 @@ export default function LeadDetailPage() {
                         />
                       </div>
 
+                      {false && (
                       <FormField
                         control={contactForm.control}
                         name="brochureSent"
@@ -1796,6 +1799,7 @@ export default function LeadDetailPage() {
                           </FormItem>
                         )}
                       />
+                      )}
 
                       <FormField
                         control={contactForm.control}
