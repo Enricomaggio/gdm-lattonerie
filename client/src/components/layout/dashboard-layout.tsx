@@ -211,10 +211,10 @@ export function DashboardLayout({ children, user, fullWidth = false }: Dashboard
               isDesktopCollapsed ? "justify-center p-3" : "justify-between p-4"
             )}>
               <img
-                src="/logo_dash.png"
-                alt={APP_CONFIG.appName}
+                src="/gdm-logo.png"
+                alt="GDM Lattonerie"
                 className={cn(
-                  isDesktopCollapsed ? "h-8 w-8 object-contain" : "h-10 w-auto"
+                  isDesktopCollapsed ? "h-10 w-10 object-contain" : "h-12 w-auto object-contain"
                 )}
               />
               <Button
@@ -271,7 +271,7 @@ export function DashboardLayout({ children, user, fullWidth = false }: Dashboard
                     data-testid={`nav-${item.label.toLowerCase()}`}
                   >
                     <item.icon className="w-5 h-5 shrink-0" />
-                    {!isDesktopCollapsed && <span>{item.label}</span>}
+                    {!isDesktopCollapsed && <span className="tracking-wide">{item.label}</span>}
                     {!isDesktopCollapsed && item.href === "/dashboard" && <ReminderBadge />}
                   </div>
                 );

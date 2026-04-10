@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { APP_CONFIG } from "@/lib/config";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import gdmLogoPath from "@assets/GDM-lattonerie-logo_1775834741168.png";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -44,18 +44,28 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle data-testid="text-login-title">Accedi</CardTitle>
-          <CardDescription>
-            Inserisci le tue credenziali per accedere a <span className="font-medium">{APP_CONFIG.appName}</span>.
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[hsl(0_0%_10%)]">
+      <Card className="w-full max-w-md border-0 bg-[hsl(0_0%_16%)]">
+        <CardHeader className="text-center pb-4 pt-8">
+          <div className="flex justify-center mb-6">
+            <img
+              src={gdmLogoPath}
+              alt="GDM Lattonerie"
+              className="h-28 w-28 object-contain"
+              data-testid="img-gdm-logo"
+            />
+          </div>
+          <CardDescription className="text-sm text-[hsl(0_0%_65%)] tracking-wider">
+            Inserisci le tue credenziali per accedere alla piattaforma.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="login-email">
+              <label
+                className="text-sm font-medium tracking-wide text-[hsl(0_0%_80%)]"
+                htmlFor="login-email"
+              >
                 Email
               </label>
               <Input
@@ -68,11 +78,15 @@ export default function LoginPage() {
                 autoComplete="email"
                 inputMode="email"
                 data-testid="input-email"
+                className="border-0 bg-[hsl(0_0%_22%)] text-[hsl(0_0%_92%)] placeholder:text-white/30 focus-visible:ring-[hsl(0_0%_45%)]"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="login-password">
+              <label
+                className="text-sm font-medium tracking-wide text-[hsl(0_0%_80%)]"
+                htmlFor="login-password"
+              >
                 Password
               </label>
               <Input
@@ -84,6 +98,7 @@ export default function LoginPage() {
                 disabled={isLoading || authLoading}
                 autoComplete="current-password"
                 data-testid="input-password"
+                className="border-0 bg-[hsl(0_0%_22%)] text-[hsl(0_0%_92%)] placeholder:text-white/30 focus-visible:ring-[hsl(0_0%_45%)]"
               />
             </div>
 
@@ -91,7 +106,7 @@ export default function LoginPage() {
               <Button
                 type="button"
                 variant="link"
-                className="h-auto p-0 text-sm"
+                className="h-auto p-0 text-sm text-[hsl(0_0%_55%)] hover:text-[hsl(0_0%_75%)]"
                 onClick={() => setLocation("/reset-password")}
                 data-testid="link-reset-password"
               >
@@ -101,7 +116,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full tracking-widest font-semibold bg-[hsl(0_0%_88%)] text-[hsl(0_0%_10%)] hover:bg-[hsl(0_0%_96%)]"
               disabled={isLoading || authLoading}
               data-testid="button-login"
             >
@@ -111,7 +126,7 @@ export default function LoginPage() {
                   Accesso in corso...
                 </>
               ) : (
-                "Accedi"
+                "ACCEDI"
               )}
             </Button>
           </form>

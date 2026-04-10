@@ -25,47 +25,47 @@ input[type="number"] {
   margin: 8px 12px !important;
 }
 
-/* LIGHT MODE - Platform One Brand Identity */
+/* LIGHT MODE - GDM Lattonerie Brand Identity */
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
   --opaque-button-border-intensity: -8;
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
-  --background: 0 0% 99%;
-  --foreground: 232 87% 14%;
-  --border: 232 20% 90%;
+  --background: 0 0% 97%;
+  --foreground: 0 0% 10%;
+  --border: 0 0% 85%;
   --card: 0 0% 100%;
-  --card-foreground: 232 87% 14%;
-  --card-border: 232 20% 92%;
-  --sidebar: 232 87% 14%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-border: 232 70% 20%;
-  --sidebar-primary: 229 100% 64%;
+  --card-foreground: 0 0% 10%;
+  --card-border: 0 0% 88%;
+  --sidebar: 0 0% 12%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-border: 0 0% 20%;
+  --sidebar-primary: 0 0% 60%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 232 70% 22%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 229 100% 64%;
+  --sidebar-accent: 0 0% 20%;
+  --sidebar-accent-foreground: 0 0% 96%;
+  --sidebar-ring: 0 0% 60%;
   --popover: 0 0% 100%;
-  --popover-foreground: 232 87% 14%;
-  --popover-border: 232 20% 90%;
-  --primary: 232 87% 14%;
+  --popover-foreground: 0 0% 10%;
+  --popover-border: 0 0% 88%;
+  --primary: 0 0% 12%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 229 100% 64%;
+  --secondary: 0 0% 55%;
   --secondary-foreground: 0 0% 100%;
-  --muted: 232 20% 95%;
-  --muted-foreground: 232 30% 45%;
-  --accent: 143 52% 60%;
+  --muted: 0 0% 93%;
+  --muted-foreground: 0 0% 45%;
+  --accent: 0 0% 55%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --input: 232 20% 85%;
-  --ring: 229 100% 64%;
-  --chart-1: 232 87% 14%;
-  --chart-2: 229 100% 64%;
-  --chart-3: 143 52% 60%;
-  --chart-4: 32 95% 44%;
-  --chart-5: 340 82% 52%;
+  --input: 0 0% 82%;
+  --ring: 0 0% 35%;
+  --chart-1: 0 0% 12%;
+  --chart-2: 0 0% 40%;
+  --chart-3: 0 0% 60%;
+  --chart-4: 0 0% 75%;
+  --chart-5: 0 0% 88%;
   --font-sans: "Inter", "Spoqa Han Sans Neo", sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: "JetBrains Mono", monospace;
@@ -110,47 +110,47 @@ input[type="number"] {
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-/* DARK MODE - Platform One Brand Identity */
+/* DARK MODE - GDM Lattonerie Brand Identity */
 .dark {
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
   --opaque-button-border-intensity: 9;
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
-  --background: 232 87% 8%;
-  --foreground: 0 0% 98%;
-  --border: 232 50% 20%;
-  --card: 232 87% 12%;
-  --card-foreground: 0 0% 98%;
-  --card-border: 232 50% 18%;
-  --sidebar: 232 87% 10%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-border: 232 50% 16%;
-  --sidebar-primary: 229 100% 64%;
+  --background: 0 0% 8%;
+  --foreground: 0 0% 96%;
+  --border: 0 0% 22%;
+  --card: 0 0% 12%;
+  --card-foreground: 0 0% 96%;
+  --card-border: 0 0% 18%;
+  --sidebar: 0 0% 10%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-border: 0 0% 18%;
+  --sidebar-primary: 0 0% 60%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 232 70% 18%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 229 100% 64%;
-  --popover: 232 87% 14%;
-  --popover-foreground: 0 0% 98%;
-  --popover-border: 232 50% 22%;
-  --primary: 229 100% 64%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 232 50% 25%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 232 50% 18%;
-  --muted-foreground: 232 20% 65%;
-  --accent: 143 52% 50%;
-  --accent-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 20%;
+  --sidebar-accent-foreground: 0 0% 96%;
+  --sidebar-ring: 0 0% 60%;
+  --popover: 0 0% 14%;
+  --popover-foreground: 0 0% 96%;
+  --popover-border: 0 0% 22%;
+  --primary: 0 0% 90%;
+  --primary-foreground: 0 0% 10%;
+  --secondary: 0 0% 25%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 0 0% 18%;
+  --muted-foreground: 0 0% 60%;
+  --accent: 0 0% 30%;
+  --accent-foreground: 0 0% 96%;
   --destructive: 0 62% 40%;
   --destructive-foreground: 0 0% 98%;
-  --input: 232 50% 30%;
-  --ring: 229 100% 64%;
-  --chart-1: 229 100% 70%;
-  --chart-2: 143 52% 65%;
-  --chart-3: 232 87% 50%;
-  --chart-4: 32 95% 65%;
-  --chart-5: 340 82% 68%;
+  --input: 0 0% 28%;
+  --ring: 0 0% 60%;
+  --chart-1: 0 0% 90%;
+  --chart-2: 0 0% 70%;
+  --chart-3: 0 0% 50%;
+  --chart-4: 0 0% 35%;
+  --chart-5: 0 0% 22%;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
@@ -197,6 +197,10 @@ input[type="number"] {
   body {
     @apply font-sans antialiased bg-background text-foreground;
     text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: 0.04em;
   }
 }
 
