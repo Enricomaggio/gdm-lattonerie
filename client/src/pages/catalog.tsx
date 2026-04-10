@@ -541,17 +541,6 @@ export default function CatalogPage() {
             </p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Switch
-              id="checklist-filter"
-              checked={showChecklistOnly}
-              onCheckedChange={setShowChecklistOnly}
-              data-testid="switch-checklist-filter"
-            />
-            <Label htmlFor="checklist-filter" className="text-sm">
-              Solo voci Checklist
-            </Label>
-          </div>
         </div>
 
         <Card>
@@ -709,107 +698,6 @@ export default function CatalogPage() {
           </CardContent>
         </Card>
 
-        {/* Sezione Promozioni - solo per admin */}
-        {isAdmin && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-4">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Tag className="w-5 h-5" />
-                  Promozioni
-                </CardTitle>
-                <CardDescription>
-                  Codici sconto temporanei applicati automaticamente nel preventivatore
-                </CardDescription>
-              </div>
-              <Button onClick={openNewPromoDialog} data-testid="button-new-promo">
-                <Plus className="w-4 h-4 mr-2" />
-                Nuova Promozione
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {isPromoLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : promoCodes.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 space-y-2">
-                  <Tag className="w-8 h-8 text-muted-foreground" />
-                  <p className="text-muted-foreground text-sm">Nessuna promozione creata</p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Descrizione</TableHead>
-                      <TableHead className="w-20">Sconto</TableHead>
-                      <TableHead className="w-28">Dal</TableHead>
-                      <TableHead className="w-28">Al</TableHead>
-                      <TableHead>Articoli</TableHead>
-                      <TableHead className="w-24">Stato</TableHead>
-                      <TableHead className="w-20">Azioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {promoCodes.map((promo) => {
-                      const active = isPromoActive(promo);
-                      return (
-                        <TableRow key={promo.id} data-testid={`row-promo-${promo.id}`}>
-                          <TableCell className="text-sm">{promo.description || "-"}</TableCell>
-                          <TableCell className="font-medium">{promo.discountPercent}%</TableCell>
-                          <TableCell className="text-sm">{new Date(promo.validFrom).toLocaleDateString("it-IT")}</TableCell>
-                          <TableCell className="text-sm">{new Date(promo.validTo).toLocaleDateString("it-IT")}</TableCell>
-                          <TableCell className="text-sm">
-                            {promo.articleCodes && promo.articleCodes.length > 0
-                              ? promo.articleCodes.map((code, i) => {
-                                  const art = articles.find(a => a.code === code);
-                                  return <span key={code}>{i > 0 ? ", " : ""}<span className="font-mono">{code}</span>{art ? ` (${art.name})` : ""}</span>;
-                                })
-                              : <span className="text-muted-foreground italic">Tutti gli articoli</span>
-                            }
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={active
-                                ? "bg-green-50 text-green-700 border-green-300 dark:bg-green-950/30 dark:text-green-400"
-                                : "bg-muted text-muted-foreground"
-                              }
-                              data-testid={`badge-promo-status-${promo.id}`}
-                            >
-                              {active ? "Attiva" : "Non attiva"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => openEditPromoDialog(promo)}
-                                data-testid={`button-edit-promo-${promo.id}`}
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => { setPromoToDelete(promo); setIsPromoDeleteDialogOpen(true); }}
-                                className="text-destructive hover:text-destructive"
-                                data-testid={`button-delete-promo-${promo.id}`}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       {/* Dialog Promo - Crea / Modifica */}
