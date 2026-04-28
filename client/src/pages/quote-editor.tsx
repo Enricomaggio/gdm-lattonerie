@@ -15,6 +15,7 @@ import {
   FileText,
   Save,
   Loader2,
+  Pencil,
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -182,6 +183,8 @@ const giornateFormSchema = z.object({
   marginPercent: z.string().optional(),
 });
 
+type QuoteItemDraftValues = Omit<QuoteItemDraft, "uid">;
+
 interface AddRowDialogProps {
   open: boolean;
   onClose: () => void;
@@ -197,6 +200,11 @@ function AddRowDialog({ open, onClose, onAdd, materials, catalogArticles, laborR
   useEffect(() => {
     if (open) setType("LATTONERIA");
   }, [open]);
+
+  const handleSubmit = (d: QuoteItemDraftValues) => {
+    onAdd({ uid: genUid(), ...d });
+    onClose();
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -221,13 +229,74 @@ function AddRowDialog({ open, onClose, onAdd, materials, catalogArticles, laborR
         </div>
 
         {type === "LATTONERIA" && (
-          <LattoneriaForm materials={materials} onSubmit={(d) => { onAdd(d); onClose(); }} />
+          <LattoneriaForm materials={materials} onSubmit={handleSubmit} />
         )}
         {type === "ARTICOLO" && (
-          <ArticoloForm articles={catalogArticles} onSubmit={(d) => { onAdd(d); onClose(); }} />
+          <ArticoloForm articles={catalogArticles} onSubmit={handleSubmit} />
         )}
         {type === "GIORNATE" && (
-          <GiornateForm laborRates={laborRates} onSubmit={(d) => { onAdd(d); onClose(); }} />
+          <GiornateForm laborRates={laborRates} onSubmit={handleSubmit} />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface EditRowDialogProps {
+  item: QuoteItemDraft | null;
+  onClose: () => void;
+  onUpdate: (uid: string, draft: QuoteItemDraftValues) => void;
+  materials: MaterialWithThicknesses[];
+  catalogArticles: CatalogArticle[];
+  laborRates: LaborRate[];
+}
+
+function EditRowDialog({ item, onClose, onUpdate, materials, catalogArticles, laborRates }: EditRowDialogProps) {
+  const open = item !== null;
+
+  const handleSubmit = (d: QuoteItemDraftValues) => {
+    if (!item) return;
+    onUpdate(item.uid, d);
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg" data-testid="dialog-edit-row">
+        <DialogHeader>
+          <DialogTitle>Modifica riga del preventivo</DialogTitle>
+          <DialogDescription>Aggiorna i campi e salva per ricalcolare il prezzo</DialogDescription>
+        </DialogHeader>
+
+        {item?.type === "LATTONERIA" && (
+          <LattoneriaForm
+            key={item.uid}
+            materials={materials}
+            initial={item}
+            submitLabel="Salva modifiche"
+            submitTestId="button-save-lattoneria-row"
+            onSubmit={handleSubmit}
+          />
+        )}
+        {item?.type === "ARTICOLO" && (
+          <ArticoloForm
+            key={item.uid}
+            articles={catalogArticles}
+            initial={item}
+            submitLabel="Salva modifiche"
+            submitTestId="button-save-articolo-row"
+            onSubmit={handleSubmit}
+          />
+        )}
+        {item?.type === "GIORNATE" && (
+          <GiornateForm
+            key={item.uid}
+            laborRates={laborRates}
+            initial={item}
+            submitLabel="Salva modifiche"
+            submitTestId="button-save-giornate-row"
+            onSubmit={handleSubmit}
+          />
         )}
       </DialogContent>
     </Dialog>
@@ -237,19 +306,25 @@ function AddRowDialog({ open, onClose, onAdd, materials, catalogArticles, laborR
 function LattoneriaForm({
   materials,
   onSubmit,
+  initial,
+  submitLabel = "Aggiungi",
+  submitTestId = "button-add-lattoneria-row",
 }: {
   materials: MaterialWithThicknesses[];
-  onSubmit: (d: QuoteItemDraft) => void;
+  onSubmit: (d: QuoteItemDraftValues) => void;
+  initial?: QuoteItemDraft;
+  submitLabel?: string;
+  submitTestId?: string;
 }) {
   const form = useForm<z.infer<typeof lattoneriaFormSchema>>({
     resolver: zodResolver(lattoneriaFormSchema),
     defaultValues: {
-      materialId: "",
-      materialThicknessId: "",
-      developmentMm: "",
-      quantity: "",
-      description: "",
-      marginPercent: "",
+      materialId: initial?.materialId ?? "",
+      materialThicknessId: initial?.materialThicknessId ?? "",
+      developmentMm: initial?.developmentMm ?? "",
+      quantity: initial?.quantity ?? "",
+      description: initial?.description ?? "",
+      marginPercent: initial?.marginPercent ?? "",
     },
   });
 
@@ -295,7 +370,6 @@ function LattoneriaForm({
 
   const submit = form.handleSubmit((vals) => {
     onSubmit({
-      uid: genUid(),
       type: "LATTONERIA",
       description: vals.description || "",
       materialId: vals.materialId,
@@ -430,9 +504,9 @@ function LattoneriaForm({
           </div>
         )}
         <DialogFooter>
-          <Button type="submit" data-testid="button-add-lattoneria-row">
-            <Plus className="w-4 h-4 mr-2" />
-            Aggiungi
+          <Button type="submit" data-testid={submitTestId}>
+            {initial ? <Save className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+            {submitLabel}
           </Button>
         </DialogFooter>
       </form>
@@ -443,17 +517,23 @@ function LattoneriaForm({
 function ArticoloForm({
   articles,
   onSubmit,
+  initial,
+  submitLabel = "Aggiungi",
+  submitTestId = "button-add-articolo-row",
 }: {
   articles: CatalogArticle[];
-  onSubmit: (d: QuoteItemDraft) => void;
+  onSubmit: (d: QuoteItemDraftValues) => void;
+  initial?: QuoteItemDraft;
+  submitLabel?: string;
+  submitTestId?: string;
 }) {
   const form = useForm<z.infer<typeof articoloFormSchema>>({
     resolver: zodResolver(articoloFormSchema),
     defaultValues: {
-      catalogArticleId: "",
-      quantity: "",
-      description: "",
-      marginPercent: "",
+      catalogArticleId: initial?.catalogArticleId ?? "",
+      quantity: initial?.quantity ?? "",
+      description: initial?.description ?? "",
+      marginPercent: initial?.marginPercent ?? "",
     },
   });
 
@@ -477,7 +557,6 @@ function ArticoloForm({
 
   const submit = form.handleSubmit((vals) => {
     onSubmit({
-      uid: genUid(),
       type: "ARTICOLO",
       description: vals.description || "",
       catalogArticleId: vals.catalogArticleId,
@@ -570,9 +649,9 @@ function ArticoloForm({
           </div>
         )}
         <DialogFooter>
-          <Button type="submit" data-testid="button-add-articolo-row">
-            <Plus className="w-4 h-4 mr-2" />
-            Aggiungi
+          <Button type="submit" data-testid={submitTestId}>
+            {initial ? <Save className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+            {submitLabel}
           </Button>
         </DialogFooter>
       </form>
@@ -583,17 +662,23 @@ function ArticoloForm({
 function GiornateForm({
   laborRates,
   onSubmit,
+  initial,
+  submitLabel = "Aggiungi",
+  submitTestId = "button-add-giornate-row",
 }: {
   laborRates: LaborRate[];
-  onSubmit: (d: QuoteItemDraft) => void;
+  onSubmit: (d: QuoteItemDraftValues) => void;
+  initial?: QuoteItemDraft;
+  submitLabel?: string;
+  submitTestId?: string;
 }) {
   const form = useForm<z.infer<typeof giornateFormSchema>>({
     resolver: zodResolver(giornateFormSchema),
     defaultValues: {
-      laborRateId: "",
-      quantity: "",
-      description: "",
-      marginPercent: "",
+      laborRateId: initial?.laborRateId ?? "",
+      quantity: initial?.quantity ?? "",
+      description: initial?.description ?? "",
+      marginPercent: initial?.marginPercent ?? "",
     },
   });
 
@@ -617,7 +702,6 @@ function GiornateForm({
 
   const submit = form.handleSubmit((vals) => {
     onSubmit({
-      uid: genUid(),
       type: "GIORNATE",
       description: vals.description || "",
       laborRateId: vals.laborRateId,
@@ -710,9 +794,9 @@ function GiornateForm({
           </div>
         )}
         <DialogFooter>
-          <Button type="submit" data-testid="button-add-giornate-row">
-            <Plus className="w-4 h-4 mr-2" />
-            Aggiungi
+          <Button type="submit" data-testid={submitTestId}>
+            {initial ? <Save className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+            {submitLabel}
           </Button>
         </DialogFooter>
       </form>
@@ -738,6 +822,7 @@ export default function QuoteEditorPage() {
   const [notes, setNotes] = useState("");
   const [number, setNumber] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<QuoteItemDraft | null>(null);
 
   const materialsQuery = useQuery<MaterialWithThicknesses[]>({ queryKey: ["/api/materials"] });
   const articlesQuery = useQuery<CatalogArticle[]>({ queryKey: ["/api/catalog-articles"] });
@@ -893,6 +978,10 @@ export default function QuoteEditorPage() {
 
   function deleteItem(uid: string) {
     setItems((prev) => prev.filter((i) => i.uid !== uid));
+  }
+
+  function updateItem(uid: string, draft: QuoteItemDraftValues) {
+    setItems((prev) => prev.map((i) => (i.uid === uid ? { uid, ...draft } : i)));
   }
 
   const isLoading =
@@ -1057,14 +1146,28 @@ export default function QuoteEditorPage() {
                   </TableHeader>
                   <TableBody>
                     {items.map((it, idx) => (
-                      <TableRow key={it.uid} data-testid={`row-quote-item-${it.uid}`}>
+                      <TableRow
+                        key={it.uid}
+                        onClick={() => setEditingItem(it)}
+                        className="cursor-pointer hover-elevate"
+                        data-testid={`row-quote-item-${it.uid}`}
+                      >
                         <TableCell>{rowTypeBadge(it.type)}</TableCell>
                         <TableCell className="text-sm">{rowDetails(it)}</TableCell>
                         <TableCell className="text-right font-medium">
                           {it.totalRow ? `€ ${formatEur(parseFloat(it.totalRow))}` : "—"}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="inline-flex gap-1">
+                          <div className="inline-flex gap-1" onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7"
+                              onClick={() => setEditingItem(it)}
+                              data-testid={`button-edit-${it.uid}`}
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
                             <Button
                               size="icon"
                               variant="ghost"
@@ -1121,6 +1224,15 @@ export default function QuoteEditorPage() {
         open={addOpen}
         onClose={() => setAddOpen(false)}
         onAdd={(d) => setItems((prev) => [...prev, d])}
+        materials={materialsQuery.data || []}
+        catalogArticles={articlesQuery.data || []}
+        laborRates={laborRatesQuery.data || []}
+      />
+
+      <EditRowDialog
+        item={editingItem}
+        onClose={() => setEditingItem(null)}
+        onUpdate={updateItem}
         materials={materialsQuery.data || []}
         catalogArticles={articlesQuery.data || []}
         laborRates={laborRatesQuery.data || []}
