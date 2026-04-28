@@ -1806,7 +1806,7 @@ export default function OpportunitaPage() {
                   Aggiungi Opportunità
                 </Button>
               </DialogTrigger>
-            <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)}>
                   <DialogHeader>
@@ -1815,8 +1815,13 @@ export default function OpportunitaPage() {
                       Crea una nuova opportunità/cantiere. I campi con * sono obbligatori.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-5 py-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-5 py-4">
+                    <div className="border rounded-lg p-4 space-y-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                        <Building2 className="w-3.5 h-3.5" />
+                        Informazioni
+                      </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="title"
@@ -1854,7 +1859,7 @@ export default function OpportunitaPage() {
                       />
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="leadId"
@@ -1918,7 +1923,7 @@ export default function OpportunitaPage() {
                       />
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="stageId"
@@ -2041,32 +2046,14 @@ export default function OpportunitaPage() {
                         )}
                       />
                     )}
-                    
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Descrizione</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Descrizione del lavoro..."
-                              rows={2}
-                              {...field}
-                              data-testid="input-opportunity-description"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="border-t pt-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <Label className="text-sm font-medium flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          Indirizzo Cantiere
-                        </Label>
+                    </div>
+
+                    <div className="border rounded-lg p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5" />
+                          Cantiere
+                        </p>
                         {selectedLead?.address && (
                           <Button
                             type="button"
@@ -2081,12 +2068,13 @@ export default function OpportunitaPage() {
                           </Button>
                         )}
                       </div>
-                      <div className="grid gap-3" style={{ gridTemplateColumns: "5fr 4fr 1.5fr 1.5fr" }}>
+                      <div className="grid grid-cols-2 sm:grid-cols-12 gap-3">
                         <FormField
                           control={form.control}
                           name="siteAddress"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="col-span-2 sm:col-span-7">
+                              <FormLabel>Indirizzo</FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="Via/Indirizzo"
@@ -2102,7 +2090,8 @@ export default function OpportunitaPage() {
                           control={form.control}
                           name="siteCity"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="col-span-2 sm:col-span-5">
+                              <FormLabel>Città</FormLabel>
                               <FormControl>
                                 <CityAutocomplete
                                   value={field.value || ""}
@@ -2132,7 +2121,8 @@ export default function OpportunitaPage() {
                           control={form.control}
                           name="siteZip"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="col-span-1 sm:col-span-3">
+                              <FormLabel>CAP</FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="CAP"
@@ -2148,7 +2138,8 @@ export default function OpportunitaPage() {
                           control={form.control}
                           name="siteProvince"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="col-span-1 sm:col-span-3">
+                              <FormLabel>Provincia</FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="Prov."
@@ -2161,13 +2152,30 @@ export default function OpportunitaPage() {
                             </FormItem>
                           )}
                         />
+                        <FormField
+                          control={form.control}
+                          name="mapsLink"
+                          render={({ field }) => (
+                            <FormItem className="col-span-2 sm:col-span-6">
+                              <FormLabel>Link Google Maps</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Link Google Maps"
+                                  {...field}
+                                  data-testid="input-maps-link"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
                       {watchSiteCity && watchSiteCity.toLowerCase().includes("venezia") && (
                         <FormField
                           control={form.control}
                           name="veniceZone"
                           render={({ field }) => (
-                            <FormItem className="mt-3">
+                            <FormItem>
                               <FormLabel className="text-xs font-medium text-blue-700">Zona Venezia (Trasporto Lagunare)</FormLabel>
                               <Select
                                 value={field.value || ""}
@@ -2190,23 +2198,7 @@ export default function OpportunitaPage() {
                           )}
                         />
                       )}
-                      <FormField
-                        control={form.control}
-                        name="mapsLink"
-                        render={({ field }) => (
-                          <FormItem className="mt-3">
-                            <FormControl>
-                              <Input
-                                placeholder="Link Google Maps"
-                                {...field}
-                                data-testid="input-maps-link"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="mt-3 space-y-2">
+                      <div className="space-y-2">
                         <div className="flex items-center gap-3">
                           <FormField
                             control={form.control}
@@ -2278,7 +2270,7 @@ export default function OpportunitaPage() {
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-3 mt-3">
+                      <div className="grid grid-cols-2 gap-3">
                         <FormField
                           control={form.control}
                           name="estimatedStartDate"
@@ -2294,8 +2286,34 @@ export default function OpportunitaPage() {
                         />
                       </div>
                     </div>
+
+                    <div className="border rounded-lg p-4 space-y-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                        <StickyNote className="w-3.5 h-3.5" />
+                        Note
+                      </p>
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Descrizione</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Descrizione del lavoro..."
+                                rows={5}
+                                className="min-h-[120px]"
+                                {...field}
+                                data-testid="input-opportunity-description"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
-                  <DialogFooter>
+                  <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-6 pt-4 border-t">
                     <Button
                       type="button"
                       variant="outline"
