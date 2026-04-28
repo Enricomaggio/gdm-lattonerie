@@ -1762,22 +1762,22 @@ export default function OpportunitaPage() {
                   Aggiungi Opportunità
                 </Button>
               </DialogTrigger>
-            <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-4 sm:p-5 gap-3">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)}>
-                  <DialogHeader>
-                    <DialogTitle>Nuova Opportunità</DialogTitle>
-                    <DialogDescription>
+                  <DialogHeader className="space-y-0.5">
+                    <DialogTitle className="text-base sm:text-lg">Nuova Opportunità</DialogTitle>
+                    <DialogDescription className="text-xs">
                       Crea una nuova opportunità/cantiere. I campi con * sono obbligatori.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-5 py-4">
-                    <div className="border rounded-lg p-4 space-y-4">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                  <div className="space-y-3 py-3">
+                    <div className="border rounded-md p-3 space-y-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
                         <Building2 className="w-3.5 h-3.5" />
                         Informazioni
                       </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <FormField
                         control={form.control}
                         name="title"
@@ -1814,8 +1814,8 @@ export default function OpportunitaPage() {
                         )}
                       />
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <FormField
                         control={form.control}
                         name="leadId"
@@ -1878,103 +1878,103 @@ export default function OpportunitaPage() {
                         )}
                       />
                     </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="stageId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Fase *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-stage">
-                                <SelectValue placeholder="Seleziona una fase" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {stages.map((stage) => (
-                                <SelectItem key={stage.id} value={stage.id}>
-                                  <div className="flex items-center gap-2">
-                                    <div
-                                      className="w-2 h-2 rounded-full"
-                                      style={{ backgroundColor: stage.color }}
-                                    />
-                                    {stage.name}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <FormField
+                        control={form.control}
+                        name="stageId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Fase *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-stage">
+                                  <SelectValue placeholder="Seleziona una fase" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {stages.map((stage) => (
+                                  <SelectItem key={stage.id} value={stage.id}>
+                                    <div className="flex items-center gap-2">
+                                      <div
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ backgroundColor: stage.color }}
+                                      />
+                                      {stage.name}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      {isLostStage(watchStageId) && (
+                        <FormField
+                          control={form.control}
+                          name="lostReason"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Motivazione Persa</FormLabel>
+                              <Select
+                                onValueChange={(val) => field.onChange(val === "_none" ? null : val)}
+                                value={field.value || "_none"}
+                              >
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-lost-reason">
+                                    <SelectValue placeholder="Seleziona motivazione" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="_none">Nessuna</SelectItem>
+                                  {lostReasonEnum.map((reason) => (
+                                    <SelectItem key={reason} value={reason}>
+                                      {lostReasonLabels[reason]}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       )}
-                    />
-
-                    {isLostStage(watchStageId) && (
-                      <FormField
-                        control={form.control}
-                        name="lostReason"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Motivazione Persa</FormLabel>
-                            <Select 
-                              onValueChange={(val) => field.onChange(val === "_none" ? null : val)} 
-                              value={field.value || "_none"}
-                            >
-                              <FormControl>
-                                <SelectTrigger data-testid="select-lost-reason" className="md:w-1/2">
-                                  <SelectValue placeholder="Seleziona motivazione" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="_none">Nessuna</SelectItem>
-                                {lostReasonEnum.map((reason) => (
-                                  <SelectItem key={reason} value={reason}>
-                                    {lostReasonLabels[reason]}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-
-                    {isWonStage(watchStageId) && (
-                      <FormField
-                        control={form.control}
-                        name="siteQuality"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Com'è il cantiere? *</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value || ""}
-                            >
-                              <FormControl>
-                                <SelectTrigger data-testid="select-site-quality" className="md:w-1/2">
-                                  <SelectValue placeholder="Seleziona..." />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {siteQualityEnum.map((quality) => (
-                                  <SelectItem key={quality} value={quality}>
-                                    {siteQualityLabels[quality]}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                      {isWonStage(watchStageId) && (
+                        <FormField
+                          control={form.control}
+                          name="siteQuality"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Com'è il cantiere? *</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value || ""}
+                              >
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-site-quality">
+                                    <SelectValue placeholder="Seleziona..." />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {siteQualityEnum.map((quality) => (
+                                    <SelectItem key={quality} value={quality}>
+                                      {siteQualityLabels[quality]}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </div>
                     </div>
 
-                    <div className="border rounded-lg p-4 space-y-4">
+                    <div className="border rounded-md p-3 space-y-3">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5" />
                           Cantiere
                         </p>
@@ -1984,7 +1984,7 @@ export default function OpportunitaPage() {
                             variant="ghost"
                             size="sm"
                             onClick={copyAddressFromContact}
-                            className="text-xs h-7"
+                            className="text-xs h-6 px-2"
                             data-testid="button-copy-address"
                           >
                             <Copy className="w-3 h-3 mr-1" />
@@ -1992,12 +1992,12 @@ export default function OpportunitaPage() {
                           </Button>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-12 gap-3">
+                      <div className="grid grid-cols-12 gap-3">
                         <FormField
                           control={form.control}
                           name="siteAddress"
                           render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-7">
+                            <FormItem className="col-span-12 sm:col-span-5">
                               <FormLabel>Indirizzo</FormLabel>
                               <FormControl>
                                 <Input
@@ -2014,7 +2014,7 @@ export default function OpportunitaPage() {
                           control={form.control}
                           name="siteCity"
                           render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-5">
+                            <FormItem className="col-span-12 sm:col-span-3">
                               <FormLabel>Città</FormLabel>
                               <FormControl>
                                 <CityAutocomplete
@@ -2045,7 +2045,7 @@ export default function OpportunitaPage() {
                           control={form.control}
                           name="siteZip"
                           render={({ field }) => (
-                            <FormItem className="col-span-1 sm:col-span-3">
+                            <FormItem className="col-span-6 sm:col-span-2">
                               <FormLabel>CAP</FormLabel>
                               <FormControl>
                                 <Input
@@ -2062,7 +2062,7 @@ export default function OpportunitaPage() {
                           control={form.control}
                           name="siteProvince"
                           render={({ field }) => (
-                            <FormItem className="col-span-1 sm:col-span-3">
+                            <FormItem className="col-span-6 sm:col-span-2">
                               <FormLabel>Provincia</FormLabel>
                               <FormControl>
                                 <Input
@@ -2080,7 +2080,7 @@ export default function OpportunitaPage() {
                           control={form.control}
                           name="mapsLink"
                           render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-6">
+                            <FormItem className="col-span-12">
                               <FormLabel>Link Google Maps</FormLabel>
                               <FormControl>
                                 <Input
@@ -2088,6 +2088,89 @@ export default function OpportunitaPage() {
                                   {...field}
                                   data-testid="input-maps-link"
                                 />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="siteDistanceKm"
+                          render={({ field }) => (
+                            <FormItem className="col-span-12 sm:col-span-4">
+                              <FormLabel className="text-xs">Distanza cantiere (km)</FormLabel>
+                              <div className="flex items-center gap-2">
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    placeholder="0"
+                                    {...field}
+                                    data-testid="input-site-distance"
+                                  />
+                                </FormControl>
+                                {field.value && parseInt(field.value) > 0 && (
+                                  <Badge variant="outline" className="text-xs shrink-0">A/R: {parseInt(field.value) * 2} km</Badge>
+                                )}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="siteSquadraInZonaKm"
+                          render={({ field }) => (
+                            <FormItem className="col-span-12 sm:col-span-4">
+                              <FormLabel className="text-xs flex items-center gap-1.5">
+                                <input
+                                  type="checkbox"
+                                  checked={!!field.value && field.value !== "0"}
+                                  onChange={(e) => field.onChange(e.target.checked ? "50" : "")}
+                                  className="rounded border-gray-300"
+                                  data-testid="checkbox-squadra-in-zona"
+                                />
+                                Squadra in zona
+                                {externalWorkers.length > 0 && (
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                                    onClick={(e) => { e.preventDefault(); setShowSquadreInfoDialog(true); }}
+                                    title="Vedi città squadre esterne"
+                                    data-testid="button-info-squadre-esterne"
+                                  >
+                                    <Info className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </FormLabel>
+                              {field.value && field.value !== "0" ? (
+                                <div className="flex items-center gap-2">
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      placeholder="Km effettivi"
+                                      {...field}
+                                      data-testid="input-squadra-in-zona-km"
+                                    />
+                                  </FormControl>
+                                  <span className="text-xs text-muted-foreground shrink-0">km</span>
+                                </div>
+                              ) : (
+                                <div className="h-9" />
+                              )}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="estimatedStartDate"
+                          render={({ field }) => (
+                            <FormItem className="col-span-12 sm:col-span-4">
+                              <FormLabel className="text-xs">Data inizio indicativa</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} data-testid="input-estimated-start" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -2122,97 +2205,10 @@ export default function OpportunitaPage() {
                           )}
                         />
                       )}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <FormField
-                            control={form.control}
-                            name="siteDistanceKm"
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormLabel className="text-xs">Distanza cantiere (km)</FormLabel>
-                                <div className="flex items-center gap-2">
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      placeholder="0"
-                                      {...field}
-                                      data-testid="input-site-distance"
-                                    />
-                                  </FormControl>
-                                  {field.value && parseInt(field.value) > 0 && (
-                                    <Badge variant="outline" className="text-xs shrink-0">A/R: {parseInt(field.value) * 2} km</Badge>
-                                  )}
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="siteSquadraInZonaKm"
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormLabel className="text-xs flex items-center gap-1.5">
-                                  <input
-                                    type="checkbox"
-                                    checked={!!field.value && field.value !== "0"}
-                                    onChange={(e) => field.onChange(e.target.checked ? "50" : "")}
-                                    className="rounded border-gray-300"
-                                    data-testid="checkbox-squadra-in-zona"
-                                  />
-                                  Squadra in zona
-                                  {externalWorkers.length > 0 && (
-                                    <button
-                                      type="button"
-                                      className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                                      onClick={(e) => { e.preventDefault(); setShowSquadreInfoDialog(true); }}
-                                      title="Vedi città squadre esterne"
-                                      data-testid="button-info-squadre-esterne"
-                                    >
-                                      <Info className="w-3 h-3" />
-                                    </button>
-                                  )}
-                                </FormLabel>
-                                {field.value && field.value !== "0" && (
-                                  <div className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Input
-                                        type="number"
-                                        min="0"
-                                        placeholder="Km effettivi"
-                                        {...field}
-                                        data-testid="input-squadra-in-zona-km"
-                                      />
-                                    </FormControl>
-                                    <span className="text-xs text-muted-foreground shrink-0">km</span>
-                                  </div>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <FormField
-                          control={form.control}
-                          name="estimatedStartDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Data inizio indicativa</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} data-testid="input-estimated-start" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
                     </div>
 
-                    <div className="border rounded-lg p-4 space-y-4">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                    <div className="border rounded-md p-3 space-y-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
                         <StickyNote className="w-3.5 h-3.5" />
                         Note
                       </p>
@@ -2221,12 +2217,11 @@ export default function OpportunitaPage() {
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Descrizione</FormLabel>
                             <FormControl>
                               <Textarea
                                 placeholder="Descrizione del lavoro..."
-                                rows={5}
-                                className="min-h-[120px]"
+                                rows={3}
+                                className="min-h-[72px] resize-y"
                                 {...field}
                                 data-testid="input-opportunity-description"
                               />
@@ -2237,7 +2232,7 @@ export default function OpportunitaPage() {
                       />
                     </div>
                   </div>
-                  <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-6 pt-4 border-t">
+                  <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-3 pt-3 border-t">
                     <Button
                       type="button"
                       variant="outline"
@@ -2339,14 +2334,14 @@ export default function OpportunitaPage() {
         )}
 
         <Dialog open={isDetailOpen} onOpenChange={handleDetailOpenChange}>
-          <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-4 sm:p-5 gap-3">
             <Form {...editForm}>
               <form onSubmit={editForm.handleSubmit(handleEditSubmit)}>
-                <DialogHeader className="pr-10">
+                <DialogHeader className="pr-10 space-y-0.5">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <DialogTitle>Dettagli Opportunità</DialogTitle>
-                      <DialogDescription>
+                    <div className="space-y-0.5">
+                      <DialogTitle className="text-base sm:text-lg">Dettagli Opportunità</DialogTitle>
+                      <DialogDescription className="text-xs">
                         Visualizza e modifica i dati dell'opportunità.
                       </DialogDescription>
                     </div>
@@ -2354,23 +2349,23 @@ export default function OpportunitaPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="shrink-0 gap-2"
+                      className="shrink-0 gap-1.5 h-7 px-2 text-xs"
                       onClick={() => setIsReminderModalOpen(true)}
                       data-testid="button-open-opportunity-reminders"
                     >
-                      <BellRing className="w-4 h-4" />
+                      <BellRing className="w-3.5 h-3.5" />
                       Promemoria
                     </Button>
                   </div>
                 </DialogHeader>
 
-                <div className="space-y-5 py-4">
-                  <div className="border rounded-lg p-4 space-y-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                <div className="space-y-3 py-3">
+                  <div className="border rounded-md p-3 space-y-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
                       <Building2 className="w-3.5 h-3.5" />
                       Informazioni
                     </p>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3">
                         <FormField
                           control={editForm.control}
                           name="title"
@@ -2398,13 +2393,13 @@ export default function OpportunitaPage() {
                           )}
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3">
                         <FormField
                           control={editForm.control}
                           name="leadId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="flex items-center gap-2 min-h-[1.25rem]">
+                              <FormLabel className="flex items-center gap-2">
                                 Contatto *
                                 {watchEditLeadId && (
                                   <a
@@ -2448,7 +2443,7 @@ export default function OpportunitaPage() {
                           name="referentId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="flex items-center gap-2 min-h-[1.25rem]">Referente</FormLabel>
+                              <FormLabel>Referente</FormLabel>
                               <Select 
                                 onValueChange={field.onChange} 
                                 value={field.value}
@@ -2511,101 +2506,103 @@ export default function OpportunitaPage() {
                           )}
                         />
                       </div>
-                      <FormField
-                        control={editForm.control}
-                        name="stageId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Fase *</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger data-testid="select-edit-stage">
-                                  <SelectValue placeholder="Seleziona una fase" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {stages.map((stage) => (
-                                  <SelectItem key={stage.id} value={stage.id}>
-                                    <div className="flex items-center gap-2">
-                                      <div
-                                        className="w-2 h-2 rounded-full"
-                                        style={{ backgroundColor: stage.color }}
-                                      />
-                                      {stage.name}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
+                      <div className="grid grid-cols-2 gap-3">
+                        <FormField
+                          control={editForm.control}
+                          name="stageId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Fase *</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-edit-stage">
+                                    <SelectValue placeholder="Seleziona una fase" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {stages.map((stage) => (
+                                    <SelectItem key={stage.id} value={stage.id}>
+                                      <div className="flex items-center gap-2">
+                                        <div
+                                          className="w-2 h-2 rounded-full"
+                                          style={{ backgroundColor: stage.color }}
+                                        />
+                                        {stage.name}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        {isLostStage(watchEditStageId) && (
+                          <FormField
+                            control={editForm.control}
+                            name="lostReason"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Motivazione Persa</FormLabel>
+                                <Select
+                                  onValueChange={(val) => field.onChange(val === "_none" ? null : val)}
+                                  value={field.value || "_none"}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-edit-lost-reason">
+                                      <SelectValue placeholder="Seleziona motivazione" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="_none">Nessuna</SelectItem>
+                                    {lostReasonEnum.map((reason) => (
+                                      <SelectItem key={reason} value={reason}>
+                                        {lostReasonLabels[reason]}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         )}
-                      />
-                      {isLostStage(watchEditStageId) && (
-                        <FormField
-                          control={editForm.control}
-                          name="lostReason"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Motivazione Persa</FormLabel>
-                              <Select 
-                                onValueChange={(val) => field.onChange(val === "_none" ? null : val)} 
-                                value={field.value || "_none"}
-                              >
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-edit-lost-reason">
-                                    <SelectValue placeholder="Seleziona motivazione" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="_none">Nessuna</SelectItem>
-                                  {lostReasonEnum.map((reason) => (
-                                    <SelectItem key={reason} value={reason}>
-                                      {lostReasonLabels[reason]}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                      {isWonStage(watchEditStageId) && (
-                        <FormField
-                          control={editForm.control}
-                          name="siteQuality"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Com'è il cantiere? *</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value || ""}
-                              >
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-edit-site-quality">
-                                    <SelectValue placeholder="Seleziona..." />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {siteQualityEnum.map((quality) => (
-                                    <SelectItem key={quality} value={quality}>
-                                      {siteQualityLabels[quality]}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
+                        {isWonStage(watchEditStageId) && (
+                          <FormField
+                            control={editForm.control}
+                            name="siteQuality"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Com'è il cantiere? *</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value || ""}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-edit-site-quality">
+                                      <SelectValue placeholder="Seleziona..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {siteQualityEnum.map((quality) => (
+                                      <SelectItem key={quality} value={quality}>
+                                        {siteQualityLabels[quality]}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                      </div>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:items-start">
-                    <div className="border rounded-lg p-4 space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:items-stretch">
+                    <div className="border rounded-md p-3 space-y-3">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5" />
                           Cantiere
                         </p>
@@ -2615,7 +2612,7 @@ export default function OpportunitaPage() {
                             variant="ghost"
                             size="sm"
                             onClick={copyEditAddressFromContact}
-                            className="text-xs h-7"
+                            className="text-xs h-6 px-2"
                             data-testid="button-edit-copy-address"
                           >
                             <Copy className="w-3 h-3 mr-1" />
@@ -2623,12 +2620,12 @@ export default function OpportunitaPage() {
                           </Button>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-12 gap-3">
+                      <div className="grid grid-cols-12 gap-3">
                         <FormField
                           control={editForm.control}
                           name="siteAddress"
                           render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-7">
+                            <FormItem className="col-span-12 sm:col-span-5">
                               <FormLabel>Indirizzo</FormLabel>
                               <FormControl>
                                 <Input
@@ -2645,7 +2642,7 @@ export default function OpportunitaPage() {
                           control={editForm.control}
                           name="siteCity"
                           render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-5">
+                            <FormItem className="col-span-12 sm:col-span-3">
                               <FormLabel>Città</FormLabel>
                               <FormControl>
                                 <CityAutocomplete
@@ -2676,7 +2673,7 @@ export default function OpportunitaPage() {
                           control={editForm.control}
                           name="siteZip"
                           render={({ field }) => (
-                            <FormItem className="col-span-1 sm:col-span-3">
+                            <FormItem className="col-span-6 sm:col-span-2">
                               <FormLabel>CAP</FormLabel>
                               <FormControl>
                                 <Input
@@ -2693,7 +2690,7 @@ export default function OpportunitaPage() {
                           control={editForm.control}
                           name="siteProvince"
                           render={({ field }) => (
-                            <FormItem className="col-span-1 sm:col-span-3">
+                            <FormItem className="col-span-6 sm:col-span-2">
                               <FormLabel>Provincia</FormLabel>
                               <FormControl>
                                 <Input
@@ -2711,7 +2708,7 @@ export default function OpportunitaPage() {
                           control={editForm.control}
                           name="mapsLink"
                           render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-6">
+                            <FormItem className="col-span-12">
                               <FormLabel>Link Google Maps</FormLabel>
                               <FormControl>
                                 <Input
@@ -2730,7 +2727,7 @@ export default function OpportunitaPage() {
                           control={editForm.control}
                           name="veniceZone"
                           render={({ field }) => (
-                            <FormItem className="mt-3">
+                            <FormItem>
                               <FormLabel className="text-xs font-medium text-blue-700">Zona Venezia (Trasporto Lagunare)</FormLabel>
                               <Select
                                 value={field.value || ""}
@@ -2755,10 +2752,10 @@ export default function OpportunitaPage() {
                       )}
                     </div>
 
-                    <div className="space-y-5">
+                    <div className="space-y-3 flex flex-col">
 
-                    <div className="border rounded-lg p-4 space-y-4">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                    <div className="border rounded-md p-3 space-y-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
                         <StickyNote className="w-3.5 h-3.5" />
                         Note
                       </p>
@@ -2767,11 +2764,10 @@ export default function OpportunitaPage() {
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Descrizione</FormLabel>
                             <FormControl>
                               <Textarea
-                                rows={5}
-                                className="min-h-[120px]"
+                                rows={3}
+                                className="min-h-[72px] resize-y"
                                 {...field}
                                 data-testid="input-edit-description"
                               />
@@ -2781,10 +2777,10 @@ export default function OpportunitaPage() {
                         )}
                       />
                       {opportunityDetail && (opportunityDetail.leadNotes || (opportunityDetail.projectNotes && opportunityDetail.projectNotes.length > 0)) && (
-                        <div className="rounded-md bg-muted/50 border p-3 space-y-2" data-testid="panel-related-notes">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <StickyNote className="w-3.5 h-3.5 text-muted-foreground" />
-                            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Note Correlate</span>
+                        <div className="rounded-md bg-muted/50 border p-2 space-y-1.5" data-testid="panel-related-notes">
+                          <div className="flex items-center gap-1.5">
+                            <StickyNote className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Note Correlate</span>
                           </div>
                           {opportunityDetail.leadNotes && (
                             <div data-testid="related-note-lead">
@@ -2802,60 +2798,58 @@ export default function OpportunitaPage() {
                       )}
                     </div>
 
-                    <div className="border rounded-lg p-4 space-y-4">
+                    <div className="border rounded-md p-3 space-y-2 flex-1 flex flex-col">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
                           <FileText className="w-3.5 h-3.5" />
                           Preventivi Salvati
                         </p>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground">
                           {opportunityQuotes.length} preventiv{opportunityQuotes.length === 1 ? 'o' : 'i'}
                         </span>
                       </div>
                       {isLoadingQuotes ? (
-                        <div className="space-y-2">
-                          <Skeleton className="h-12 w-full" />
-                          <Skeleton className="h-12 w-full" />
+                        <div className="space-y-1.5">
+                          <Skeleton className="h-9 w-full" />
+                          <Skeleton className="h-9 w-full" />
                         </div>
                       ) : opportunityQuotes.length === 0 ? (
-                        <div className="text-center py-4 text-muted-foreground text-sm border rounded-lg bg-muted/30">
-                          <FileText className="w-6 h-6 mx-auto mb-1 opacity-50" />
+                        <div className="text-center py-3 text-muted-foreground text-xs border rounded-md bg-muted/30">
+                          <FileText className="w-5 h-5 mx-auto mb-1 opacity-50" />
                           Nessun preventivo salvato
                         </div>
                       ) : (
-                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                        <div className="space-y-1.5 max-h-48 overflow-y-auto">
                           {opportunityQuotes.map((quote) => (
                             <div
                               key={quote.id}
-                              className="flex items-center justify-between p-3 border rounded-lg hover-elevate"
+                              className="flex items-center justify-between px-2 py-1.5 border rounded-md hover-elevate"
                               data-testid={`quote-row-${quote.id}`}
                             >
-                              <div className="flex items-center gap-3">
-                                <FileText className="w-4 h-4 text-muted-foreground" />
-                                <div>
-                                  <div className="font-medium text-sm">{quote.number}</div>
-                                  <div className="text-xs text-muted-foreground">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <div className="min-w-0">
+                                  <div className="font-medium text-xs truncate">{quote.number}</div>
+                                  <div className="text-[11px] text-muted-foreground truncate">
                                     {quote.createdAt && format(new Date(quote.createdAt), "dd MMM yyyy, HH:mm", { locale: it })}
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <div className="font-semibold text-sm">
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <div className="font-semibold text-xs">
                                   €{formatCurrency(parseFloat(quote.totalAmount || "0"))}
                                 </div>
-                                <div className="flex gap-0.5">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => navigate(`/quotes/${quote.id}`)}
-                                    title="Apri preventivo"
-                                    data-testid={`button-edit-quote-${quote.id}`}
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </Button>
-                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => navigate(`/quotes/${quote.id}`)}
+                                  title="Apri preventivo"
+                                  data-testid={`button-edit-quote-${quote.id}`}
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </Button>
                               </div>
                             </div>
                           ))}
@@ -2866,7 +2860,7 @@ export default function OpportunitaPage() {
                 </div>
                 </div>
 
-                <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 mt-6 pt-4 border-t">
+                <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 mt-3 pt-3 border-t">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
