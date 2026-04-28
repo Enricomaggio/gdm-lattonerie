@@ -87,7 +87,7 @@ import {
   Unlock,
 } from "lucide-react";
 import { useLocation } from "wouter";
-import type { Project, ProjectStage, WorkType } from "@shared/schema";
+import type { Project, ProjectStage } from "@shared/schema";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { SchedaCantiereModal } from "@/components/scheda-cantiere-modal";
@@ -197,7 +197,7 @@ function DraggableProjectCard({
     >
       <div
         className="absolute left-0 top-[4px] bottom-[4px] w-[3px] rounded-full"
-        style={{ backgroundColor: project.workType === "PUBLIC" ? "#FACC15" : "#F97316" }}
+        style={{ backgroundColor: "#F97316" }}
       />
       <div className="relative">
         <GripVertical className="w-4 h-4 text-muted-foreground absolute top-0 right-0 flex-shrink-0" data-testid={`project-drag-handle-${project.id}`} />
@@ -206,11 +206,6 @@ function DraggableProjectCard({
             <p className="text-sm font-semibold truncate flex-1" data-testid={`project-client-${project.id}`}>
               {project.clientName}
             </p>
-            {project.workType === "PUBLIC" && (
-              <span className="text-[10px] bg-yellow-400/30 text-yellow-700 dark:bg-yellow-400/20 dark:text-yellow-300 px-1.5 py-0.5 rounded-sm flex-shrink-0">
-                Pubblico
-              </span>
-            )}
           </div>
 
           {project.siteAddress && (
@@ -308,7 +303,7 @@ function ProjectCardOverlay({ project }: { project: ProjectWithRelations }) {
     <div className="bg-card border rounded-md p-3 shadow-lg opacity-90 w-[280px] relative">
       <div
         className="absolute left-0 top-[4px] bottom-[4px] w-[3px] rounded-full"
-        style={{ backgroundColor: project.workType === "PUBLIC" ? "#FACC15" : "#F97316" }}
+        style={{ backgroundColor: "#F97316" }}
       />
       <div className="relative">
         <GripVertical className="w-4 h-4 text-muted-foreground absolute top-0 right-0" />
@@ -577,7 +572,6 @@ export default function ProgettiPage() {
   const [isSchedaOpen, setIsSchedaOpen] = useState(false);
   const [activeProject, setActiveProject] = useState<ProjectWithRelations | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterWorkType, setFilterWorkType] = useState<string>("ALL");
   const [filterCantiereStatuses, setFilterCantiereStatuses] = useState<string[]>(() => {
     const validStatuses = new Set(["NON_AVVIATO", "MONTAGGIO_PIANIFICATO", "MONTAGGIO_IN_CORSO", "IN_CORSO", "SMONTAGGIO_IN_CORSO", "COMPLETATO"]);
     try {
@@ -852,11 +846,10 @@ export default function ProgettiPage() {
         const matches = fields.some(f => normalizeSearch(f).includes(q));
         if (!matches) return false;
       }
-      if (filterWorkType !== "ALL" && p.workType !== filterWorkType) return false;
       if (isPartialCantiereSelection && !filterCantiereStatuses.includes(p.cantiereStatus ?? "")) return false;
       return true;
     });
-  }, [projects, searchQuery, filterWorkType, filterCantiereStatuses, isPartialCantiereSelection, normalizeSearch]);
+  }, [projects, searchQuery, filterCantiereStatuses, isPartialCantiereSelection, normalizeSearch]);
 
   const projectsByStage = useMemo(() => {
     const priorityOrder: Record<string, number> = { ALTA: 0, MEDIA: 1, BASSA: 2 };
@@ -994,18 +987,6 @@ export default function ProgettiPage() {
                 data-testid="input-search-projects"
               />
             </div>
-            <Select value={filterWorkType} onValueChange={setFilterWorkType}>
-              <SelectTrigger className="w-40" data-testid="select-filter-work-type">
-                <Filter className="w-4 h-4 mr-1" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tutti i tipi</SelectItem>
-                <SelectItem value="PRIVATE">Privato</SelectItem>
-                <SelectItem value="PUBLIC">Pubblico</SelectItem>
-                <SelectItem value="SUBCONTRACT">Subappalto</SelectItem>
-              </SelectContent>
-            </Select>
             <div className="relative" data-cantiere-dropdown>
               <button
                 type="button"
@@ -1144,11 +1125,6 @@ export default function ProgettiPage() {
                         <span className="text-sm font-semibold" data-testid="text-detail-client">
                           {selectedProject.clientName}
                         </span>
-                        {selectedProject.workType === "PUBLIC" && (
-                          <span className="text-[10px] bg-yellow-400/30 text-yellow-700 dark:bg-yellow-400/20 dark:text-yellow-300 px-1.5 py-0.5 rounded-sm flex-shrink-0">
-                            Pubblico
-                          </span>
-                        )}
                       </div>
                       {selectedProject.siteAddress && (
                         <div className="flex items-center gap-2">

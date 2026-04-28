@@ -210,7 +210,6 @@ companyRouter.post("/admin/sync-missing-projects", isAuthenticated, async (req, 
         opportunityId: opp.id,
         companyId,
         clientName,
-        workType: opp.workType || "PRIVATE",
         sopralluogoFatto: opp.sopralluogoFatto ?? false,
         stageId: firstStageId,
       };

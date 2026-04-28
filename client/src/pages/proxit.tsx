@@ -3234,8 +3234,7 @@ function SpreadsheetGrid({
                         const primaryAssignment = ganttAssignment ?? mattinoAssignment ?? pomeriggioAssignment ?? null;
 
                         const ganttBarColor = ganttAssignment ? (ACTIVITY_COLORS[ganttAssignment.activityType as ActivityType] || "#6B7280") : null;
-                        const ganttProject = ganttAssignment?.projectId ? projectsMap.get(ganttAssignment.projectId) : null;
-                        const ganttBorderColor = ganttProject?.workType === "PUBLIC" ? "#FACC15" : "#F97316";
+                        const ganttBorderColor = "#F97316";
 
                         const prevSlots = prevGroup ? (ganttByDateAndCapo[prevGroup.dateStr]?.[capo.id] ?? {}) : {};
                         const nextSlots = nextGroup ? (ganttByDateAndCapo[nextGroup.dateStr]?.[capo.id] ?? {}) : {};
@@ -3503,8 +3502,7 @@ function SpreadsheetGrid({
                           >
                             {!isSplit && barAssignment && (() => {
                               const barColor = ACTIVITY_COLORS[barAssignment.activityType as ActivityType] || "#6B7280";
-                              const barProject = barAssignment.projectId ? projectsMap.get(barAssignment.projectId) : null;
-                              const barBorderColor = barProject?.workType === "PUBLIC" ? "#FACC15" : "#F97316";
+                              const barBorderColor = "#F97316";
                               const isFerieType = barAssignment.activityType === "FERIE_PIOGGIA_VARIE";
                               // For partial cells, render only the appropriate half of the cell
                               const topVal = partialBarSlot === "pomeriggio" ? "50%" : (isBarStart ? 0 : -1);
@@ -3548,7 +3546,7 @@ function SpreadsheetGrid({
                                 {mattinoAssignment && (() => {
                                   const color = ACTIVITY_COLORS[mattinoAssignment.activityType as ActivityType] || "#6B7280";
                                   const project = mattinoAssignment.projectId ? projectsMap.get(mattinoAssignment.projectId) : null;
-                                  const borderColor = project?.workType === "PUBLIC" ? "#FACC15" : "#F97316";
+                                  const borderColor = "#F97316";
                                   const mattinoMatSigla = mattinoAssignment.projectId ? projectMaterialMap.get(mattinoAssignment.projectId) : null;
                                   const label = mattinoAssignment.activityType === "FERIE_PIOGGIA_VARIE"
                                     ? (mattinoAssignment.clientName || "Ferie/Pioggia/Varie")
@@ -3571,7 +3569,7 @@ function SpreadsheetGrid({
                                 {pomeriggioAssignment && (() => {
                                   const color = ACTIVITY_COLORS[pomeriggioAssignment.activityType as ActivityType] || "#6B7280";
                                   const project = pomeriggioAssignment.projectId ? projectsMap.get(pomeriggioAssignment.projectId) : null;
-                                  const borderColor = project?.workType === "PUBLIC" ? "#FACC15" : "#F97316";
+                                  const borderColor = "#F97316";
                                   const pomeriggioMatSigla = pomeriggioAssignment.projectId ? projectMaterialMap.get(pomeriggioAssignment.projectId) : null;
                                   const label = pomeriggioAssignment.activityType === "FERIE_PIOGGIA_VARIE"
                                     ? (pomeriggioAssignment.clientName || "Ferie/Pioggia/Varie")
@@ -3612,8 +3610,7 @@ function SpreadsheetGrid({
                         const isBarEnd = isInRange && dateStr === draftEnd;
                         const draftLabel = draft ? (draft.clientName || "Bozza") : "";
                         const draftColor = draft ? (ACTIVITY_COLORS[draft.activityType as ActivityType] || "#78716C") : "#78716C";
-                        const draftProject = draft?.projectId ? projectsMap.get(draft.projectId) : null;
-                        const draftBorderColor = draftProject?.workType === "PUBLIC" ? "#FACC15" : "#F97316";
+                        const draftBorderColor = "#F97316";
 
                         return (
                           <td

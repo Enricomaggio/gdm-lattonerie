@@ -51,10 +51,6 @@ export const sourceEnum = [
 ] as const;
 export type ContactSource = typeof sourceEnum[number];
 
-// Enum per tipo appalto (PRIVATO vs PUBBLICO)
-export const workTypeEnum = ["PRIVATE", "PUBLIC"] as const;
-export type WorkType = typeof workTypeEnum[number];
-
 // Enum per motivazione opportunità persa
 export const lostReasonEnum = ["PRICE_HIGH", "TIMING", "LOST_TO_COMPETITOR", "NOT_IN_TARGET", "NO_RESPONSE", "OTHER"] as const;
 export type LostReason = typeof lostReasonEnum[number];
@@ -424,9 +420,6 @@ export const opportunities = pgTable("opportunities", {
   referentId: varchar("referent_id").references(() => contactReferents.id),
   companyId: varchar("company_id").notNull().references(() => companies.id),
   assignedToUserId: varchar("assigned_to_user_id").references(() => users.id),
-  
-  // Tipo appalto
-  workType: text("work_type").$type<WorkType>().default("PRIVATE"),
   
   // Indirizzo cantiere
   siteAddress: text("site_address"),
@@ -845,7 +838,6 @@ export const projects = pgTable("projects", {
   siteCity: text("site_city"),
   siteProvince: text("site_province"),
   siteZip: text("site_zip"),
-  workType: text("work_type").$type<WorkType>().default("PRIVATE"),
   estimatedStartDate: timestamp("estimated_start_date"),
   estimatedEndDate: timestamp("estimated_end_date"),
   sopralluogoFatto: boolean("sopralluogo_fatto").default(false),

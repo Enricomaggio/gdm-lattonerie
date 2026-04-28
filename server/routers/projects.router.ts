@@ -343,7 +343,6 @@ projectsRouter.get("/projects", isAuthenticated, async (req, res) => {
                 opportunityId: opp.id,
                 companyId: userCompany.companyId,
                 clientName,
-                workType: opp.workType || "PRIVATE",
                 sopralluogoFatto: opp.sopralluogoFatto ?? false,
                 stageId: firstStageId,
               };
@@ -606,7 +605,6 @@ projectsRouter.get("/projects/:id/site-details", isAuthenticated, async (req, re
         title: opportunity.title,
         description: opportunity.description,
         value: opportunity.value,
-        workType: opportunity.workType,
         siteAddress: opportunity.siteAddress,
         siteCity: opportunity.siteCity,
         siteZip: opportunity.siteZip,

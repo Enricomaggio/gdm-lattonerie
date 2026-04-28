@@ -60,9 +60,9 @@ import {
 } from "lucide-react";
 import type { 
   Lead, Opportunity, PipelineStage, ActivityLog, ContactType, 
-  EntityType, ContactSource, ContactReferent, CreditsafeReport, PaymentMethod, LeadSource, WorkType, LostReason, Worker 
+  EntityType, ContactSource, ContactReferent, CreditsafeReport, PaymentMethod, LeadSource, LostReason, Worker 
 } from "@shared/schema";
-import { entityTypeEnum, workTypeEnum, lostReasonEnum } from "@shared/schema";
+import { entityTypeEnum, lostReasonEnum } from "@shared/schema";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
@@ -122,7 +122,6 @@ const opportunityFormSchema = z.object({
   value: z.string().optional().or(z.literal("")),
   referentId: z.string().optional().or(z.literal("")),
   stageId: z.string().min(1, "La fase è obbligatoria"),
-  workType: z.enum(["PRIVATE", "PUBLIC"]).default("PRIVATE"),
   siteAddress: z.string().optional().or(z.literal("")),
   siteCity: z.string().optional().or(z.literal("")),
   siteZip: z.string().optional().or(z.literal("")),
@@ -248,7 +247,6 @@ export default function LeadDetailPage() {
       description: "",
       value: "",
       referentId: "",
-      workType: "PRIVATE",
       siteAddress: "",
       siteCity: "",
       siteZip: "",
@@ -719,7 +717,6 @@ export default function LeadDetailPage() {
         stageId: data.stageId,
         leadId: leadId,
         referentId: data.referentId || null,
-        workType: data.workType || "PRIVATE",
         siteAddress: data.siteAddress || null,
         siteCity: data.siteCity || null,
         siteZip: data.siteZip || null,
@@ -1996,7 +1993,6 @@ export default function LeadDetailPage() {
                         description: "Descrizione",
                         value: "Valore",
                         stageId: "Fase",
-                        workType: "Tipo Appalto",
                         siteAddress: "Indirizzo Cantiere",
                         siteCity: "Città Cantiere",
                         siteZip: "CAP Cantiere",
@@ -2298,39 +2294,6 @@ export default function LeadDetailPage() {
                             ))}
                           </SelectContent>
                         </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormField
-                    control={opportunityForm.control}
-                    name="workType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo Appalto</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            className="flex gap-4 h-9 items-center"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="PRIVATE" id="opp-work-private" />
-                              <Label htmlFor="opp-work-private" className="cursor-pointer">
-                                Privato
-                              </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="PUBLIC" id="opp-work-public" />
-                              <Label htmlFor="opp-work-public" className="cursor-pointer">
-                                Pubblico
-                              </Label>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

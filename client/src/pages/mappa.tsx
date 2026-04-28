@@ -26,7 +26,6 @@ interface MapOpportunity {
   stageId: string | null;
   leadId: string;
   assignedToUserId: string | null;
-  workType: string | null;
   value: string | null;
   ritiroEsubero: boolean | null;
   sopralluogoFatto: boolean | null;
@@ -153,7 +152,6 @@ export default function MappaPage() {
   const [selectedUser, setSelectedUser] = useState<string>("all");
   const [showRitiroOnly, setShowRitiroOnly] = useState(false);
   const [showSopralluogoOnly, setShowSopralluogoOnly] = useState(false);
-  const [showWorkType, setShowWorkType] = useState<string>("all");
   const mapRef = useRef<L.Map | null>(null);
   const markerRefs = useRef<Map<string, L.Marker>>(new Map());
 
@@ -219,10 +217,9 @@ export default function MappaPage() {
       if (selectedUser !== "all" && opp.assignedToUserId !== selectedUser) return false;
       if (showRitiroOnly && !opp.ritiroEsubero) return false;
       if (showSopralluogoOnly && opp.sopralluogoFatto === true) return false;
-      if (showWorkType !== "all" && opp.workType !== showWorkType) return false;
       return true;
     });
-  }, [opportunities, selectedStage, selectedUser, showRitiroOnly, showSopralluogoOnly, showWorkType]);
+  }, [opportunities, selectedStage, selectedUser, showRitiroOnly, showSopralluogoOnly]);
 
   const stageColorMap = useMemo(() => {
     const m: Record<string, string> = {};
@@ -240,10 +237,9 @@ export default function MappaPage() {
     setSelectedUser("all");
     setShowRitiroOnly(false);
     setShowSopralluogoOnly(false);
-    setShowWorkType("all");
   };
 
-  const hasActiveFilters = selectedStage !== "all" || selectedUser !== "all" || showRitiroOnly || showSopralluogoOnly || showWorkType !== "all";
+  const hasActiveFilters = selectedStage !== "all" || selectedUser !== "all" || showRitiroOnly || showSopralluogoOnly;
 
   const formatCurrencyValue = (val: string | null) => {
     if (!val) return "-";
@@ -290,17 +286,6 @@ export default function MappaPage() {
                   {`${u.firstName || ""} ${u.lastName || ""}`.trim() || u.email}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={showWorkType} onValueChange={setShowWorkType}>
-            <SelectTrigger className="w-[150px] h-8 text-xs" data-testid="filter-worktype">
-              <SelectValue placeholder="Tipo appalto" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tutti i tipi</SelectItem>
-              <SelectItem value="PRIVATE">Privato</SelectItem>
-              <SelectItem value="PUBLIC">Pubblico</SelectItem>
             </SelectContent>
           </Select>
 
@@ -457,17 +442,6 @@ export default function MappaPage() {
                         )}
 
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "6px" }}>
-                          {opp.workType && (
-                            <span style={{
-                              fontSize: "10px",
-                              padding: "1px 6px",
-                              borderRadius: "4px",
-                              backgroundColor: opp.workType === "PUBLIC" ? "#DCFCE7" : "#DBEAFE",
-                              color: opp.workType === "PUBLIC" ? "#166534" : "#1E40AF",
-                            }}>
-                              {opp.workType === "PUBLIC" ? "Pubblico" : "Privato"}
-                            </span>
-                          )}
                           {opp.ritiroEsubero && (
                             <span style={{
                               fontSize: "10px",

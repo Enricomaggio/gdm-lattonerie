@@ -41,7 +41,6 @@ interface SiteLead {
 }
 
 interface SiteOpportunity {
-  workType?: string | null;
   siteAddress?: string | null;
   siteCity?: string | null;
   siteZip?: string | null;
@@ -115,12 +114,6 @@ interface SiteDetails {
   project?: SiteProject | null;
   transportInfo?: SiteTransportInfo[];
 }
-
-const workTypeLabels: Record<string, string> = {
-  PRIVATE: "Privato",
-  PUBLIC: "Pubblico",
-  SUBCONTRACT: "Subappalto",
-};
 
 const ponteggioPerLabels: Record<string, string> = {
   FACCIATA: "Facciata", TETTO: "Tetto", DEMOLIZIONE: "Demolizione",
@@ -322,20 +315,6 @@ export function SchedaCantiereModal({
                 <div className="p-3 rounded-lg bg-muted/50 border space-y-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold text-sm" data-testid="scheda-client-name">{clientName}</p>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {opp?.workType && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px]"
-                          style={{
-                            borderColor: opp.workType === "PUBLIC" ? "#61CE85" : "#4563FF",
-                            color: opp.workType === "PUBLIC" ? "#61CE85" : "#4563FF",
-                          }}
-                        >
-                          {workTypeLabels[opp.workType] || opp.workType}
-                        </Badge>
-                      )}
-                    </div>
                   </div>
                   {opp?.siteAddress && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
