@@ -1,7 +1,7 @@
 import { 
   companies, leads, userCompanies, users, pipelineStages, opportunities, activityLogs, invites, contactReferents, articles, quotes, quoteItems, projectStages, projects, projectTasks,
   workers, teams, drivers, vehicles, dailyAssignments, teamMembers, paymentMethods, leadSources, reminders, billingProfiles, notifications, notificationPreferences, clauseOverrides, salesTargets, externalEngineers, warehouseBalances,
-  rawMaterials, products,
+  materials, materialThicknesses, catalogArticles, laborRates,
   type Company, type InsertCompany,
   type Lead, type InsertLead,
   type UserCompany, type InsertUserCompany,
@@ -32,8 +32,10 @@ import {
   type SalesTarget, type InsertSalesTarget,
   type ExternalEngineer, type InsertExternalEngineer,
   type WarehouseBalance, type InsertWarehouseBalance,
-  type RawMaterial, type InsertRawMaterial,
-  type Product, type InsertProduct, type ProductWithRawMaterial,
+  type Material, type InsertMaterial, type MaterialWithThicknesses,
+  type MaterialThickness, type InsertMaterialThickness,
+  type CatalogArticle, type InsertCatalogArticle,
+  type LaborRate, type InsertLaborRate,
   type UserRole, type UserStatus, type User,
   type ContactType, type EntityType, type ContactSource
 } from "@shared/schema";
@@ -133,19 +135,32 @@ export interface IStorage {
   getArticle(id: string, companyId: string): Promise<Article | undefined>;
   updateArticle(id: string, companyId: string, data: Partial<InsertArticle>): Promise<Article | undefined>;
 
-  // Raw Materials (catalogo globale)
-  getRawMaterials(): Promise<RawMaterial[]>;
-  getRawMaterial(id: string): Promise<RawMaterial | undefined>;
-  createRawMaterial(data: InsertRawMaterial): Promise<RawMaterial>;
-  updateRawMaterial(id: string, data: Partial<InsertRawMaterial>): Promise<RawMaterial | undefined>;
-  deleteRawMaterial(id: string): Promise<boolean>;
+  // Catalogo Lattoneria — Materiali (es. Rame, Alluminio) + spessori
+  getMaterials(): Promise<MaterialWithThicknesses[]>;
+  getMaterial(id: string): Promise<Material | undefined>;
+  createMaterial(data: InsertMaterial): Promise<Material>;
+  updateMaterial(id: string, data: Partial<InsertMaterial>): Promise<Material | undefined>;
+  deleteMaterial(id: string): Promise<boolean>;
 
-  // Products (catalogo globale, con materia prima associata)
-  getProducts(): Promise<ProductWithRawMaterial[]>;
-  getProduct(id: string): Promise<ProductWithRawMaterial | undefined>;
-  createProduct(data: InsertProduct): Promise<Product>;
-  updateProduct(id: string, data: Partial<InsertProduct>): Promise<Product | undefined>;
-  deleteProduct(id: string): Promise<boolean>;
+  // Catalogo Lattoneria — Spessori (FK su materials)
+  getMaterialThickness(id: string): Promise<MaterialThickness | undefined>;
+  createMaterialThickness(data: InsertMaterialThickness): Promise<MaterialThickness>;
+  updateMaterialThickness(id: string, data: Partial<InsertMaterialThickness>): Promise<MaterialThickness | undefined>;
+  deleteMaterialThickness(id: string): Promise<boolean>;
+
+  // Catalogo Lattoneria — Articoli pre-acquistati e rivenduti
+  getCatalogArticles(): Promise<CatalogArticle[]>;
+  getCatalogArticle(id: string): Promise<CatalogArticle | undefined>;
+  createCatalogArticle(data: InsertCatalogArticle): Promise<CatalogArticle>;
+  updateCatalogArticle(id: string, data: Partial<InsertCatalogArticle>): Promise<CatalogArticle | undefined>;
+  deleteCatalogArticle(id: string): Promise<boolean>;
+
+  // Catalogo Lattoneria — Manodopera giornaliera
+  getLaborRates(): Promise<LaborRate[]>;
+  getLaborRate(id: string): Promise<LaborRate | undefined>;
+  createLaborRate(data: InsertLaborRate): Promise<LaborRate>;
+  updateLaborRate(id: string, data: Partial<InsertLaborRate>): Promise<LaborRate | undefined>;
+  deleteLaborRate(id: string): Promise<boolean>;
   
   // Quotes (Preventivi)
   getQuotesByOpportunity(opportunityId: string, companyId: string): Promise<Quote[]>;
@@ -1285,69 +1300,126 @@ export class DatabaseStorage implements IStorage {
     return article || undefined;
   }
 
-  // ============ RAW MATERIALS (Materie Prime) ============
+  // ============ CATALOGO LATTONERIA: MATERIALI ============
 
-  async getRawMaterials(): Promise<RawMaterial[]> {
-    return db.select().from(rawMaterials).orderBy(rawMaterials.name);
+  async getMaterials(): Promise<MaterialWithThicknesses[]> {
+    return db.query.materials.findMany({
+      with: {
+        thicknesses: {
+          orderBy: (t, { asc }) => [asc(t.thicknessMm)],
+        },
+      },
+      orderBy: (m, { asc }) => [asc(m.name)],
+    }) as Promise<MaterialWithThicknesses[]>;
   }
 
-  async getRawMaterial(id: string): Promise<RawMaterial | undefined> {
-    const [rm] = await db.select().from(rawMaterials).where(eq(rawMaterials.id, id));
-    return rm || undefined;
+  async getMaterial(id: string): Promise<Material | undefined> {
+    const [m] = await db.select().from(materials).where(eq(materials.id, id));
+    return m || undefined;
   }
 
-  async createRawMaterial(data: InsertRawMaterial): Promise<RawMaterial> {
-    const [rm] = await db.insert(rawMaterials).values(data).returning();
-    return rm;
+  async createMaterial(data: InsertMaterial): Promise<Material> {
+    const [m] = await db.insert(materials).values(data).returning();
+    return m;
   }
 
-  async updateRawMaterial(id: string, data: Partial<InsertRawMaterial>): Promise<RawMaterial | undefined> {
-    const [rm] = await db
-      .update(rawMaterials)
+  async updateMaterial(id: string, data: Partial<InsertMaterial>): Promise<Material | undefined> {
+    const [m] = await db
+      .update(materials)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(rawMaterials.id, id))
+      .where(eq(materials.id, id))
       .returning();
-    return rm || undefined;
+    return m || undefined;
   }
 
-  async deleteRawMaterial(id: string): Promise<boolean> {
-    const result = await db.delete(rawMaterials).where(eq(rawMaterials.id, id)).returning();
+  async deleteMaterial(id: string): Promise<boolean> {
+    const result = await db.delete(materials).where(eq(materials.id, id)).returning();
     return result.length > 0;
   }
 
-  // ============ PRODUCTS (Prodotti Finiti) ============
+  // ============ CATALOGO LATTONERIA: SPESSORI ============
 
-  async getProducts(): Promise<ProductWithRawMaterial[]> {
-    return db.query.products.findMany({
-      with: { rawMaterial: true },
-      orderBy: (p, { asc }) => [asc(p.name)],
-    }) as Promise<ProductWithRawMaterial[]>;
+  async getMaterialThickness(id: string): Promise<MaterialThickness | undefined> {
+    const [t] = await db.select().from(materialThicknesses).where(eq(materialThicknesses.id, id));
+    return t || undefined;
   }
 
-  async getProduct(id: string): Promise<ProductWithRawMaterial | undefined> {
-    const result = await db.query.products.findFirst({
-      where: eq(products.id, id),
-      with: { rawMaterial: true },
-    });
-    return (result as ProductWithRawMaterial | undefined) || undefined;
+  async createMaterialThickness(data: InsertMaterialThickness): Promise<MaterialThickness> {
+    const [t] = await db.insert(materialThicknesses).values(data).returning();
+    return t;
   }
 
-  async createProduct(data: InsertProduct): Promise<Product> {
-    const [p] = await db.insert(products).values(data).returning();
-    return p;
-  }
-
-  async updateProduct(id: string, data: Partial<InsertProduct>): Promise<Product | undefined> {
-    const [p] = await db
-      .update(products)
+  async updateMaterialThickness(id: string, data: Partial<InsertMaterialThickness>): Promise<MaterialThickness | undefined> {
+    const [t] = await db
+      .update(materialThicknesses)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(products.id, id))
+      .where(eq(materialThicknesses.id, id))
       .returning();
-    return p || undefined;
+    return t || undefined;
   }
 
-  async deleteProduct(id: string): Promise<boolean> {
-    const result = await db.delete(products).where(eq(products.id, id)).returning();
+  async deleteMaterialThickness(id: string): Promise<boolean> {
+    const result = await db.delete(materialThicknesses).where(eq(materialThicknesses.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // ============ CATALOGO LATTONERIA: ARTICOLI ============
+
+  async getCatalogArticles(): Promise<CatalogArticle[]> {
+    return db.select().from(catalogArticles).orderBy(catalogArticles.name);
+  }
+
+  async getCatalogArticle(id: string): Promise<CatalogArticle | undefined> {
+    const [a] = await db.select().from(catalogArticles).where(eq(catalogArticles.id, id));
+    return a || undefined;
+  }
+
+  async createCatalogArticle(data: InsertCatalogArticle): Promise<CatalogArticle> {
+    const [a] = await db.insert(catalogArticles).values(data).returning();
+    return a;
+  }
+
+  async updateCatalogArticle(id: string, data: Partial<InsertCatalogArticle>): Promise<CatalogArticle | undefined> {
+    const [a] = await db
+      .update(catalogArticles)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(catalogArticles.id, id))
+      .returning();
+    return a || undefined;
+  }
+
+  async deleteCatalogArticle(id: string): Promise<boolean> {
+    const result = await db.delete(catalogArticles).where(eq(catalogArticles.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // ============ CATALOGO LATTONERIA: MANODOPERA ============
+
+  async getLaborRates(): Promise<LaborRate[]> {
+    return db.select().from(laborRates).orderBy(laborRates.name);
+  }
+
+  async getLaborRate(id: string): Promise<LaborRate | undefined> {
+    const [l] = await db.select().from(laborRates).where(eq(laborRates.id, id));
+    return l || undefined;
+  }
+
+  async createLaborRate(data: InsertLaborRate): Promise<LaborRate> {
+    const [l] = await db.insert(laborRates).values(data).returning();
+    return l;
+  }
+
+  async updateLaborRate(id: string, data: Partial<InsertLaborRate>): Promise<LaborRate | undefined> {
+    const [l] = await db
+      .update(laborRates)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(laborRates.id, id))
+      .returning();
+    return l || undefined;
+  }
+
+  async deleteLaborRate(id: string): Promise<boolean> {
+    const result = await db.delete(laborRates).where(eq(laborRates.id, id)).returning();
     return result.length > 0;
   }
 

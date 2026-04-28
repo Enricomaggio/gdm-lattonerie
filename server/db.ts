@@ -360,30 +360,57 @@ export async function bootstrapDatabase(): Promise<void> {
     `);
 
     // Migration 0024: catalog rewrite — raw_materials and products (global, no company_id)
+    // (mantenuto per cronistoria — le tabelle vengono droppate dalla migration successiva)
+
+    // Migration 0025: Catalogo Lattoneria — sostituisce raw_materials e products con
+    // materials, material_thicknesses, catalog_articles, labor_rates.
+    // Drop old catalog tables (products dipende da raw_materials, droppare prima products).
+    await client.query(`DROP TABLE IF EXISTS products CASCADE;`);
+    await client.query(`DROP TABLE IF EXISTS raw_materials CASCADE;`);
+
     await client.query(`
-      CREATE TABLE IF NOT EXISTS raw_materials (
+      CREATE TABLE IF NOT EXISTS materials (
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
         name TEXT NOT NULL,
-        uom_purchase TEXT NOT NULL,
-        unit_cost NUMERIC(12, 4) NOT NULL DEFAULT 0,
+        density NUMERIC(12, 4) NOT NULL DEFAULT 0,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
     await client.query(`
-      CREATE TABLE IF NOT EXISTS products (
+      CREATE TABLE IF NOT EXISTS material_thicknesses (
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-        name TEXT NOT NULL,
-        raw_material_id VARCHAR NOT NULL REFERENCES raw_materials(id) ON DELETE RESTRICT,
-        conversion_rate NUMERIC(12, 4) NOT NULL DEFAULT 1,
-        uom_sale TEXT NOT NULL,
+        material_id VARCHAR NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
+        thickness_mm NUMERIC(8, 3) NOT NULL,
+        cost_per_kg NUMERIC(12, 4) NOT NULL DEFAULT 0,
         margin_percent NUMERIC(6, 2) NOT NULL DEFAULT 0,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
     await client.query(`
-      CREATE INDEX IF NOT EXISTS products_raw_material_id_idx ON products (raw_material_id);
+      CREATE INDEX IF NOT EXISTS material_thicknesses_material_id_idx ON material_thicknesses (material_id);
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS catalog_articles (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        unit_cost NUMERIC(12, 4) NOT NULL DEFAULT 0,
+        margin_percent NUMERIC(6, 2) NOT NULL DEFAULT 0,
+        unit_of_measure TEXT NOT NULL DEFAULT 'pz',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS labor_rates (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        cost_per_day NUMERIC(12, 2) NOT NULL DEFAULT 0,
+        margin_percent NUMERIC(6, 2) NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
     `);
   } finally {
     client.release();

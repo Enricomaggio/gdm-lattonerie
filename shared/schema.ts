@@ -1461,71 +1461,121 @@ export type InsertSalPeriod = z.infer<typeof insertSalPeriodSchema>;
 export type SalVoce = typeof salVoci.$inferSelect;
 export type InsertSalVoce = z.infer<typeof insertSalVoceSchema>;
 
-// ============ CATALOGO: MATERIE PRIME E PRODOTTI FINITI ============
-// Tabelle globali condivise tra tutte le aziende (no companyId)
-
-export const rawMaterials = pgTable("raw_materials", {
+// ============ CATALOGO LATTONERIA ============
+// Tabelle globali condivise tra tutte le aziende (no companyId).
+// Materiali (es. Rame, Alluminio, Zinco) con peso specifico in kg/m³.
+// Ogni materiale ha più spessori (es. 0.6mm, 0.8mm) ognuno con costo/kg e margine % di default.
+// Articoli (catalog_articles): articoli pre-acquistati e rivenduti (staffe, raccordi, ecc.).
+// Manodopera (labor_rates): voci di manodopera giornaliera.
+export const materials = pgTable("materials", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
-  uomPurchase: text("uom_purchase").notNull(),
-  unitCost: numeric("unit_cost", { precision: 12, scale: 4 }).notNull().default("0"),
+  // Peso specifico in kg/m³
+  density: numeric("density", { precision: 12, scale: 4 }).notNull().default("0"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const products = pgTable("products", {
+export const materialThicknesses = pgTable("material_thicknesses", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  rawMaterialId: varchar("raw_material_id").notNull().references(() => rawMaterials.id, { onDelete: "restrict" }),
-  conversionRate: numeric("conversion_rate", { precision: 12, scale: 4 }).notNull().default("1"),
-  uomSale: text("uom_sale").notNull(),
+  materialId: varchar("material_id").notNull().references(() => materials.id, { onDelete: "cascade" }),
+  // Spessore in millimetri
+  thicknessMm: numeric("thickness_mm", { precision: 8, scale: 3 }).notNull(),
+  // Costo al kg in €
+  costPerKg: numeric("cost_per_kg", { precision: 12, scale: 4 }).notNull().default("0"),
+  // Margine % di default applicato in fase di vendita
   marginPercent: numeric("margin_percent", { precision: 6, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
-  index("products_raw_material_id_idx").on(table.rawMaterialId),
+  index("material_thicknesses_material_id_idx").on(table.materialId),
 ]);
 
-export const rawMaterialsRelations = relations(rawMaterials, ({ many }) => ({
-  products: many(products),
+export const catalogArticles = pgTable("catalog_articles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  unitCost: numeric("unit_cost", { precision: 12, scale: 4 }).notNull().default("0"),
+  marginPercent: numeric("margin_percent", { precision: 6, scale: 2 }).notNull().default("0"),
+  unitOfMeasure: text("unit_of_measure").notNull().default("pz"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const laborRates = pgTable("labor_rates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  // Costo al giorno in €
+  costPerDay: numeric("cost_per_day", { precision: 12, scale: 2 }).notNull().default("0"),
+  marginPercent: numeric("margin_percent", { precision: 6, scale: 2 }).notNull().default("0"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const materialsRelations = relations(materials, ({ many }) => ({
+  thicknesses: many(materialThicknesses),
 }));
 
-export const productsRelations = relations(products, ({ one }) => ({
-  rawMaterial: one(rawMaterials, {
-    fields: [products.rawMaterialId],
-    references: [rawMaterials.id],
+export const materialThicknessesRelations = relations(materialThicknesses, ({ one }) => ({
+  material: one(materials, {
+    fields: [materialThicknesses.materialId],
+    references: [materials.id],
   }),
 }));
 
-const numericString = z.union([z.string(), z.number()])
+const catalogNumericString = z.union([z.string(), z.number()])
   .transform(v => String(v))
   .refine(v => !isNaN(parseFloat(v)), { message: "Valore numerico non valido" });
 
-export const insertRawMaterialSchema = createInsertSchema(rawMaterials).omit({
+export const insertMaterialSchema = createInsertSchema(materials).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 }).extend({
   name: z.string().min(1, "Il nome è obbligatorio"),
-  uomPurchase: z.string().min(1, "L'unità di acquisto è obbligatoria"),
-  unitCost: numericString.refine(v => parseFloat(v) >= 0, { message: "Il costo unitario deve essere >= 0" }),
+  density: catalogNumericString.refine(v => parseFloat(v) > 0, { message: "Il peso specifico deve essere maggiore di 0" }),
 });
 
-export const insertProductSchema = createInsertSchema(products).omit({
+export const insertMaterialThicknessSchema = createInsertSchema(materialThicknesses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  materialId: z.string().min(1, "Seleziona un materiale"),
+  thicknessMm: catalogNumericString.refine(v => parseFloat(v) > 0, { message: "Lo spessore deve essere maggiore di 0" }),
+  costPerKg: catalogNumericString.refine(v => parseFloat(v) >= 0, { message: "Il costo al kg deve essere >= 0" }),
+  marginPercent: catalogNumericString.refine(v => parseFloat(v) >= 0, { message: "Il margine deve essere >= 0" }),
+});
+
+export const insertCatalogArticleSchema = createInsertSchema(catalogArticles).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 }).extend({
   name: z.string().min(1, "Il nome è obbligatorio"),
-  rawMaterialId: z.string().min(1, "Seleziona una materia prima"),
-  conversionRate: numericString.refine(v => parseFloat(v) > 0, { message: "La resa deve essere maggiore di 0" }),
-  uomSale: z.string().min(1, "L'unità di vendita è obbligatoria"),
-  marginPercent: numericString.refine(v => parseFloat(v) >= 0, { message: "Il margine deve essere >= 0" }),
+  unitCost: catalogNumericString.refine(v => parseFloat(v) >= 0, { message: "Il costo unitario deve essere >= 0" }),
+  marginPercent: catalogNumericString.refine(v => parseFloat(v) >= 0, { message: "Il margine deve essere >= 0" }),
+  unitOfMeasure: z.string().min(1, "L'unità di misura è obbligatoria"),
 });
 
-export type RawMaterial = typeof rawMaterials.$inferSelect;
-export type InsertRawMaterial = z.infer<typeof insertRawMaterialSchema>;
+export const insertLaborRateSchema = createInsertSchema(laborRates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().min(1, "Il nome è obbligatorio"),
+  costPerDay: catalogNumericString.refine(v => parseFloat(v) >= 0, { message: "Il costo al giorno deve essere >= 0" }),
+  marginPercent: catalogNumericString.refine(v => parseFloat(v) >= 0, { message: "Il margine deve essere >= 0" }),
+});
 
-export type Product = typeof products.$inferSelect;
-export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type ProductWithRawMaterial = Product & { rawMaterial: RawMaterial };
+export type Material = typeof materials.$inferSelect;
+export type InsertMaterial = z.infer<typeof insertMaterialSchema>;
+
+export type MaterialThickness = typeof materialThicknesses.$inferSelect;
+export type InsertMaterialThickness = z.infer<typeof insertMaterialThicknessSchema>;
+export type MaterialWithThicknesses = Material & { thicknesses: MaterialThickness[] };
+
+export type CatalogArticle = typeof catalogArticles.$inferSelect;
+export type InsertCatalogArticle = z.infer<typeof insertCatalogArticleSchema>;
+
+export type LaborRate = typeof laborRates.$inferSelect;
+export type InsertLaborRate = z.infer<typeof insertLaborRateSchema>;
