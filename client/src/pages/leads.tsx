@@ -41,7 +41,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Users, Mail, Phone, ChevronRight, Search, ArrowUp, ArrowDown, ArrowUpDown, GitMerge, Building2, User, AlertTriangle, Download } from "lucide-react";
+import { Plus, Users, Mail, Phone, ChevronRight, Search, ArrowUp, ArrowDown, ArrowUpDown, GitMerge, Building2, User, AlertTriangle } from "lucide-react";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 import { Switch } from "@/components/ui/switch";
 import { MultiSelectFilter } from "@/components/ui/multi-select-filter";
@@ -147,7 +147,6 @@ export default function LeadsPage() {
         sourceFilter: toArray(parsed.sourceFilter),
         entityTypeFilter: toArray(parsed.entityTypeFilter),
         provinceFilter: toArray(parsed.provinceFilter),
-        brochureFilter: toArray(parsed.brochureFilter),
         opportunityFilter: toArray(parsed.opportunityFilter),
         searchQuery: parsed.searchQuery || "",
       };
@@ -160,14 +159,13 @@ export default function LeadsPage() {
   const [sourceFilter, setSourceFilter] = useState<string[]>(savedFilters?.sourceFilter || []);
   const [entityTypeFilter, setEntityTypeFilter] = useState<string[]>(savedFilters?.entityTypeFilter || []);
   const [provinceFilter, setProvinceFilter] = useState<string[]>(savedFilters?.provinceFilter || []);
-  const [brochureFilter, setBrochureFilter] = useState<string[]>(savedFilters?.brochureFilter || []);
   const [opportunityFilter, setOpportunityFilter] = useState<string[]>(savedFilters?.opportunityFilter || []);
   const [searchQuery, setSearchQuery] = useState(savedFilters?.searchQuery || "");
 
   useEffect(() => {
-    const filters = { typeFilter, assignedFilter, reliabilityFilter, sourceFilter, entityTypeFilter, provinceFilter, brochureFilter, opportunityFilter, searchQuery };
+    const filters = { typeFilter, assignedFilter, reliabilityFilter, sourceFilter, entityTypeFilter, provinceFilter, opportunityFilter, searchQuery };
     sessionStorage.setItem("leads-filters", JSON.stringify(filters));
-  }, [typeFilter, assignedFilter, reliabilityFilter, sourceFilter, entityTypeFilter, provinceFilter, brochureFilter, opportunityFilter, searchQuery]);
+  }, [typeFilter, assignedFilter, reliabilityFilter, sourceFilter, entityTypeFilter, provinceFilter, opportunityFilter, searchQuery]);
 
   const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "COMPANY_ADMIN";
   const [entityType, setEntityType] = useState<EntityType>("COMPANY");
@@ -226,7 +224,7 @@ export default function LeadsPage() {
     return [...new Set(provs)].sort();
   }, [leads]);
 
-  const hasActiveFilters = typeFilter.length > 0 || assignedFilter.length > 0 || reliabilityFilter.length > 0 || sourceFilter.length > 0 || entityTypeFilter.length > 0 || provinceFilter.length > 0 || brochureFilter.length > 0 || opportunityFilter.length > 0 || searchQuery.trim() !== "";
+  const hasActiveFilters = typeFilter.length > 0 || assignedFilter.length > 0 || reliabilityFilter.length > 0 || sourceFilter.length > 0 || entityTypeFilter.length > 0 || provinceFilter.length > 0 || opportunityFilter.length > 0 || searchQuery.trim() !== "";
 
   const filteredLeads = leads.filter((lead) => {
     if (typeFilter.length > 0 && !typeFilter.includes(lead.type)) return false;
@@ -240,12 +238,6 @@ export default function LeadsPage() {
     if (sourceFilter.length > 0 && (!lead.source || !sourceFilter.includes(lead.source))) return false;
     if (entityTypeFilter.length > 0 && !entityTypeFilter.includes((lead as any).entityType)) return false;
     if (provinceFilter.length > 0 && (!lead.province || !provinceFilter.includes(lead.province))) return false;
-    if (brochureFilter.length > 0) {
-      const isSent = lead.brochureSent === true;
-      const matchesSent = brochureFilter.includes("sent") && isSent;
-      const matchesNotSent = brochureFilter.includes("not_sent") && !isSent;
-      if (!matchesSent && !matchesNotSent) return false;
-    }
     if (opportunityFilter.length > 0) {
       const summary = lead.opportunitySummary;
       const matchesAny = opportunityFilter.some((opt) => {
@@ -433,49 +425,6 @@ export default function LeadsPage() {
     navigate(`/leads/${lead.id}`);
   };
 
-  const [isExporting, setIsExporting] = useState(false);
-
-  const handleExportCsv = async () => {
-    const params = new URLSearchParams();
-    if (searchQuery.trim()) params.set("search", searchQuery.trim());
-    for (const v of typeFilter) params.append("type", v);
-    for (const v of entityTypeFilter) params.append("entityType", v);
-    for (const v of assignedFilter) params.append("assignedToUserId", v);
-    for (const v of reliabilityFilter) params.append("reliability", v);
-    for (const v of provinceFilter) params.append("province", v);
-    for (const v of sourceFilter) params.append("source", v);
-    for (const v of brochureFilter) params.append("brochureSent", v);
-    for (const v of opportunityFilter) params.append("opportunityFilter", v);
-
-    const url = `/api/leads/export-csv${params.toString() ? `?${params.toString()}` : ""}`;
-
-    setIsExporting(true);
-    try {
-      const response = await fetch(url, { credentials: "include" });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = objectUrl;
-      a.download = `contatti_${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(objectUrl);
-    } catch (err) {
-      const httpCode = err instanceof Error && err.message.startsWith("HTTP ") ? err.message : null;
-      toast({
-        title: "Errore",
-        description: httpCode ? `${httpCode} - Impossibile esportare i contatti. Riprova.` : "Impossibile esportare i contatti. Riprova.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   const handleDialogOpenChange = (open: boolean) => {
     if (!open) {
       handleConfirmClose(false, () => {
@@ -515,15 +464,6 @@ export default function LeadsPage() {
                 data-testid="input-search-contacts"
               />
             </div>
-            <Button
-              variant="outline"
-              onClick={handleExportCsv}
-              disabled={isExporting}
-              data-testid="button-export-csv"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              {isExporting ? "Esportazione..." : "Esporta CSV"}
-            </Button>
             <Button
               variant="outline"
               onClick={() => navigate("/leads/duplicates")}
@@ -1184,17 +1124,6 @@ export default function LeadsPage() {
           />
 
           <MultiSelectFilter
-            label="Brochure"
-            options={[
-              { value: "sent", label: "Inviata" },
-              { value: "not_sent", label: "Non inviata" },
-            ]}
-            selected={brochureFilter}
-            onChange={setBrochureFilter}
-            data-testid="select-brochure-filter"
-          />
-
-          <MultiSelectFilter
             label="Opportunità"
             options={[
               { value: "none", label: "Nessuna opportunità" },
@@ -1220,7 +1149,6 @@ export default function LeadsPage() {
                 setSourceFilter([]);
                 setEntityTypeFilter([]);
                 setProvinceFilter([]);
-                setBrochureFilter([]);
                 setOpportunityFilter([]);
                 setSearchQuery("");
                 sessionStorage.removeItem("leads-filters");

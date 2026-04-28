@@ -1069,8 +1069,8 @@ export default function LeadDetailPage() {
                         />
                       </div>
 
-                      <div className={watchEntityType !== "COMPANY" ? "hidden" : ""}>
-                          {/* Riga 1: Ragione Sociale + P.IVA + CreditSafe */}
+                      <div className={`${watchEntityType !== "COMPANY" ? "hidden" : ""} space-y-4`}>
+                          {/* Riga 1: Ragione Sociale + P.IVA + Salva */}
                           <div className="grid grid-cols-12 gap-3 items-end">
                             <div className="col-span-5">
                               <FormField
@@ -1102,31 +1102,7 @@ export default function LeadDetailPage() {
                                 )}
                               />
                             </div>
-                            {false && (
-                            <div className="col-span-2">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => {
-                                  const vatNumber = contactForm.getValues("vatNumber");
-                                  if (vatNumber && lead) {
-                                    creditsafeFetchMutation.mutate({ leadId: lead.id, vatNumber });
-                                  }
-                                }}
-                                disabled={!contactForm.watch("vatNumber") || creditsafeFetchMutation.isPending}
-                                data-testid="button-verifica-creditsafe"
-                              >
-                                {creditsafeFetchMutation.isPending ? (
-                                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                  <Search className="w-4 h-4 mr-2" />
-                                )}
-                                {creditsafeFetchMutation.isPending ? "Verifica..." : "CreditSafe"}
-                              </Button>
-                            </div>
-                            )}
-                            <div className="col-span-2">
+                            <div className="col-span-4">
                               <Button
                                 type="submit"
                                 disabled={updateContactMutation.isPending}
@@ -1354,10 +1330,10 @@ export default function LeadDetailPage() {
                             </div>
                           </div>
                       </div>
-                      <div className={watchEntityType !== "PRIVATE" ? "hidden" : ""}>
+                      <div className={`${watchEntityType !== "PRIVATE" ? "hidden" : ""} space-y-4`}>
                           {/* PRIVATE: Riga 1: Nome + Cognome + Salva */}
                           <div className="grid grid-cols-12 gap-3 items-end">
-                            <div className="col-span-5">
+                            <div className="col-span-4">
                               <FormField
                                 control={contactForm.control}
                                 name="firstName"
@@ -1372,7 +1348,7 @@ export default function LeadDetailPage() {
                                 )}
                               />
                             </div>
-                            <div className="col-span-5">
+                            <div className="col-span-4">
                               <FormField
                                 control={contactForm.control}
                                 name="lastName"
@@ -1387,7 +1363,7 @@ export default function LeadDetailPage() {
                                 )}
                               />
                             </div>
-                            <div className="col-span-2">
+                            <div className="col-span-4">
                               <Button
                                 type="submit"
                                 disabled={updateContactMutation.isPending}
