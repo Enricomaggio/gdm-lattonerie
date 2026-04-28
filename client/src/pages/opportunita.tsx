@@ -54,7 +54,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Target, GripVertical, User, Trash2, MapPin, Copy, Building2, Briefcase, ExternalLink, Calculator, FileText, Eye, BellRing, Bell, Pencil, Settings, ArrowUp, ArrowDown, X, Camera, Video, Loader2, ClipboardCheck, AlertTriangle, Calendar, HardHat, Truck, Euro, Phone, Mail, Search, Filter, StickyNote, ChevronLeft, ChevronRight, Info, MoreHorizontal } from "lucide-react";
+import { Plus, Target, GripVertical, User, Trash2, MapPin, Copy, Building2, Briefcase, ExternalLink, Calculator, FileText, Eye, BellRing, Bell, Pencil, Settings, ArrowUp, ArrowDown, X, Camera, Video, Loader2, ClipboardCheck, AlertTriangle, Calendar, HardHat, Truck, Euro, Phone, Mail, Search, StickyNote, ChevronLeft, ChevronRight, Info, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,10 +64,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ReminderModal } from "@/components/reminder-modal";
 import { formatCurrency } from "@/lib/formatCurrency";
-import type { Opportunity, Lead, PipelineStage, ContactReferent, WorkType, LostReason, SiteQuality, QuoteStatus, Worker } from "@shared/schema";
-import { workTypeEnum, lostReasonEnum, siteQualityEnum } from "@shared/schema";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import type { Opportunity, Lead, PipelineStage, ContactReferent, LostReason, SiteQuality, QuoteStatus, Worker } from "@shared/schema";
+import { lostReasonEnum, siteQualityEnum } from "@shared/schema";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 
@@ -78,7 +76,6 @@ const opportunityFormSchema = z.object({
   leadId: z.string().min(1, "Il contatto è obbligatorio"),
   referentId: z.string().optional().or(z.literal("")),
   stageId: z.string().min(1, "La fase è obbligatoria"),
-  workType: z.enum(["PRIVATE", "PUBLIC"]).default("PRIVATE"),
   siteAddress: z.string().optional().or(z.literal("")),
   siteCity: z.string().optional().or(z.literal("")),
   siteZip: z.string().optional().or(z.literal("")),
@@ -109,11 +106,6 @@ const VENICE_ZONES = [
   "Torcello",
   "Pellestrina",
 ] as const;
-
-const workTypeLabels: Record<WorkType, string> = {
-  PRIVATE: "Appalto Privato",
-  PUBLIC: "Appalto Pubblico",
-};
 
 const lostReasonLabels: Record<LostReason, string> = {
   PRICE_HIGH: "Prezzo troppo alto",
@@ -317,15 +309,6 @@ function OpportunitySchedaCantiereModal({
                 <div className="p-3 rounded-lg bg-muted/50 border space-y-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold text-sm" data-testid="scheda-client-name">{clientName}</p>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {opp?.workType && (
-                        <Badge variant="outline" className="text-[10px]"
-                          style={{ borderColor: opp.workType === "PUBLIC" ? "#FACC15" : "#F97316", color: opp.workType === "PUBLIC" ? "#FACC15" : "#F97316" }}
-                        >
-                          {workTypeLabels[opp.workType as WorkType] || opp.workType}
-                        </Badge>
-                      )}
-                    </div>
                   </div>
                   {opp?.siteAddress && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -774,10 +757,6 @@ function OpportunityCard({ opportunity, lead, onClick, assignedUserName, isAdmin
       {...attributes}
       {...listeners}
     >
-      <div
-        className="absolute left-0 top-[4px] bottom-[4px] w-[3px] rounded-full"
-        style={{ backgroundColor: opportunity.workType === "PUBLIC" ? "#FACC15" : "#F97316" }}
-      />
       <div className="relative">
         <GripVertical className="w-4 h-4 text-muted-foreground absolute top-0 right-0 flex-shrink-0" />
         <div className="pr-6">
@@ -785,11 +764,6 @@ function OpportunityCard({ opportunity, lead, onClick, assignedUserName, isAdmin
             <div className="font-medium text-sm truncate flex-1">
               {opportunity.siteAddress || opportunity.title}
             </div>
-            {opportunity.workType === "PUBLIC" && (
-              <span className="text-[10px] bg-yellow-400/30 text-yellow-700 dark:bg-yellow-400/20 dark:text-yellow-300 px-1.5 py-0.5 rounded-sm flex-shrink-0">
-                Pubblico
-              </span>
-            )}
           </div>
           {lead && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
@@ -977,7 +951,6 @@ export default function OpportunitaPage() {
   const [pendingReminderDays, setPendingReminderDays] = useState<string>("15");
   const [showWinCelebration, setShowWinCelebration] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterWorkType, setFilterWorkType] = useState<string>("ALL");
   const [filterStatus, setFilterStatus] = useState<Set<"open" | "won" | "lost">>(() => {
     const validStatuses = new Set(["open", "won", "lost"]);
     try {
@@ -1044,7 +1017,6 @@ export default function OpportunitaPage() {
       leadId: "",
       referentId: "",
       stageId: "",
-      workType: "PRIVATE",
       siteAddress: "",
       siteCity: "",
       siteZip: "",
@@ -1067,7 +1039,6 @@ export default function OpportunitaPage() {
       leadId: "",
       referentId: "",
       stageId: "",
-      workType: "PRIVATE",
       siteAddress: "",
       siteCity: "",
       siteZip: "",
@@ -1250,7 +1221,6 @@ export default function OpportunitaPage() {
         leadId: data.leadId,
         referentId: data.referentId || null,
         stageId: data.stageId,
-        workType: data.workType,
         siteAddress: data.siteAddress || null,
         siteCity: data.siteCity || null,
         siteZip: data.siteZip || null,
@@ -1294,7 +1264,6 @@ export default function OpportunitaPage() {
         leadId: data.leadId,
         referentId: data.referentId || null,
         stageId: data.stageId,
-        workType: data.workType,
         siteAddress: data.siteAddress || null,
         siteCity: data.siteCity || null,
         siteZip: data.siteZip || null,
@@ -1491,7 +1460,6 @@ export default function OpportunitaPage() {
       leadId: opportunity.leadId,
       referentId: opportunity.referentId || "",
       stageId: opportunity.stageId || "",
-      workType: (opportunity.workType as WorkType) || "PRIVATE",
       siteAddress: opportunity.siteAddress || "",
       siteCity: opportunity.siteCity || "",
       siteZip: opportunity.siteZip || "",
@@ -1689,7 +1657,6 @@ export default function OpportunitaPage() {
         const matches = fields.some(f => normalizeSearch(f).includes(q));
         if (!matches) return false;
       }
-      if (filterWorkType !== "ALL" && opp.workType !== filterWorkType) return false;
       if (filterVenditore !== "ALL" && opp.assignedToUserId !== filterVenditore) return false;
       if (opp.stageId) {
         const won = isWonStage(opp.stageId);
@@ -1702,7 +1669,7 @@ export default function OpportunitaPage() {
       }
       return true;
     });
-  }, [opportunities, leads, searchQuery, filterWorkType, filterStatus, filterVenditore, quoteNumbersMap, normalizeSearch, stages]);
+  }, [opportunities, leads, searchQuery, filterStatus, filterVenditore, quoteNumbersMap, normalizeSearch, stages]);
 
   const getOpportunitiesByStage = (stageId: string) => {
     return filteredOpportunities.filter(o => o.stageId === stageId);
@@ -1737,17 +1704,6 @@ export default function OpportunitaPage() {
                 data-testid="input-search-opportunities"
               />
             </div>
-            <Select value={filterWorkType} onValueChange={setFilterWorkType}>
-              <SelectTrigger className="w-40" data-testid="select-filter-work-type">
-                <Filter className="w-4 h-4 mr-1" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tutti i tipi</SelectItem>
-                <SelectItem value="PRIVATE">Privato</SelectItem>
-                <SelectItem value="PUBLIC">Pubblico</SelectItem>
-              </SelectContent>
-            </Select>
             {isAdmin && (
               <Select value={filterVenditore} onValueChange={setFilterVenditore}>
                 <SelectTrigger className="w-44" data-testid="select-filter-venditore">
@@ -1923,68 +1879,36 @@ export default function OpportunitaPage() {
                       />
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="stageId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Fase *</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger data-testid="select-stage">
-                                  <SelectValue placeholder="Seleziona una fase" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {stages.map((stage) => (
-                                  <SelectItem key={stage.id} value={stage.id}>
-                                    <div className="flex items-center gap-2">
-                                      <div
-                                        className="w-2 h-2 rounded-full"
-                                        style={{ backgroundColor: stage.color }}
-                                      />
-                                      {stage.name}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="workType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tipo Appalto</FormLabel>
+                    <FormField
+                      control={form.control}
+                      name="stageId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Fase *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                className="flex gap-4 h-9 items-center"
-                              >
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="PRIVATE" id="work-private" />
-                                  <Label htmlFor="work-private" className="cursor-pointer">
-                                    Privato
-                                  </Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="PUBLIC" id="work-public" />
-                                  <Label htmlFor="work-public" className="cursor-pointer">
-                                    Pubblico
-                                  </Label>
-                                </div>
-                              </RadioGroup>
+                              <SelectTrigger data-testid="select-stage">
+                                <SelectValue placeholder="Seleziona una fase" />
+                              </SelectTrigger>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                            <SelectContent>
+                              {stages.map((stage) => (
+                                <SelectItem key={stage.id} value={stage.id}>
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className="w-2 h-2 rounded-full"
+                                      style={{ backgroundColor: stage.color }}
+                                    />
+                                    {stage.name}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                     {isLostStage(watchStageId) && (
                       <FormField
@@ -2587,68 +2511,36 @@ export default function OpportunitaPage() {
                           )}
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={editForm.control}
-                          name="stageId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fase *</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-edit-stage">
-                                    <SelectValue placeholder="Seleziona una fase" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {stages.map((stage) => (
-                                    <SelectItem key={stage.id} value={stage.id}>
-                                      <div className="flex items-center gap-2">
-                                        <div
-                                          className="w-2 h-2 rounded-full"
-                                          style={{ backgroundColor: stage.color }}
-                                        />
-                                        {stage.name}
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={editForm.control}
-                          name="workType"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Tipo Appalto</FormLabel>
+                      <FormField
+                        control={editForm.control}
+                        name="stageId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Fase *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <RadioGroup
-                                  onValueChange={field.onChange}
-                                  value={field.value}
-                                  className="flex gap-4 h-9 items-center"
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="PRIVATE" id="edit-work-private" />
-                                    <Label htmlFor="edit-work-private" className="cursor-pointer">
-                                      Privato
-                                    </Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="PUBLIC" id="edit-work-public" />
-                                    <Label htmlFor="edit-work-public" className="cursor-pointer">
-                                      Pubblico
-                                    </Label>
-                                  </div>
-                                </RadioGroup>
+                                <SelectTrigger data-testid="select-edit-stage">
+                                  <SelectValue placeholder="Seleziona una fase" />
+                                </SelectTrigger>
                               </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                              <SelectContent>
+                                {stages.map((stage) => (
+                                  <SelectItem key={stage.id} value={stage.id}>
+                                    <div className="flex items-center gap-2">
+                                      <div
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ backgroundColor: stage.color }}
+                                      />
+                                      {stage.name}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       {isLostStage(watchEditStageId) && (
                         <FormField
                           control={editForm.control}
@@ -2990,16 +2882,6 @@ export default function OpportunitaPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-56">
                       <DropdownMenuItem
-                        onSelect={() => {
-                          setIsDetailOpen(false);
-                          navigate(`/opportunities/${selectedOpportunity?.id}/quotes/new`);
-                        }}
-                        data-testid="button-create-quote"
-                      >
-                        <Calculator className="w-4 h-4 mr-2" />
-                        Crea Preventivo
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
                         onSelect={() => setIsDuplicateDialogOpen(true)}
                         disabled={duplicateOpportunityMutation.isPending}
                         data-testid="button-duplicate-opportunity"
@@ -3019,7 +2901,19 @@ export default function OpportunitaPage() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <div className="flex gap-2 sm:justify-end">
+                  <div className="flex flex-wrap gap-2 sm:justify-end">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        setIsDetailOpen(false);
+                        navigate(`/opportunities/${selectedOpportunity?.id}/quotes/new`);
+                      }}
+                      data-testid="button-create-quote"
+                    >
+                      <Calculator className="w-4 h-4 mr-2" />
+                      Crea Preventivo
+                    </Button>
                     <Button
                       type="button"
                       variant="outline"
