@@ -65,6 +65,7 @@ import TeamPage from "@/pages/team";
 import AdminPage from "@/pages/admin";
 import CatalogPage from "@/pages/catalog";
 import InCostruzionePage from "@/pages/in-costruzione";
+import QuoteEditorPage from "@/pages/quote-editor";
 import ProgettiPage from "@/pages/progetti";
 import GanttPage from "@/pages/gantt";
 import ProxitPage from "@/pages/proxit";
@@ -231,10 +232,10 @@ function AppRouter() {
         <RoleProtectedRoute component={MappaPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN", "SALES_AGENT"]} />
       </Route>
       <Route path="/opportunities/:id/quotes/new">
-        <ProtectedRoute component={InCostruzionePage} />
+        <RoleProtectedRoute component={QuoteEditorPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN", "SALES_AGENT"]} />
       </Route>
       <Route path="/quotes/:id">
-        <ProtectedRoute component={InCostruzionePage} />
+        <RoleProtectedRoute component={QuoteEditorPage} allowedRoles={["SUPER_ADMIN", "COMPANY_ADMIN", "TECHNICIAN", "SALES_AGENT"]} />
       </Route>
       <Route path="/admin">
         <SuperAdminRoute component={AdminPage} />

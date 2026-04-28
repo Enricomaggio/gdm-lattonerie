@@ -13,6 +13,7 @@ import { catalogRouter } from "./routers/catalog.router";
 import { articlesRouter } from "./routers/articles.router";
 import { assignmentsRouter } from "./routers/assignments.router";
 import { notificationsRouter } from "./routers/notifications.router";
+import { quotesRouter } from "./routers/quotes.router";
 import {
   isAuthenticated,
   canAccessLeads,
@@ -38,6 +39,7 @@ export async function registerRoutes(
   app.use('/api', articlesRouter);
   app.use('/api', assignmentsRouter);
   app.use('/api', notificationsRouter);
+  app.use('/api', quotesRouter);
 
 
 

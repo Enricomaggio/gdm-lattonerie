@@ -412,6 +412,42 @@ export async function bootstrapDatabase(): Promise<void> {
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
+
+    // Migration 0026: Preventivatore Lattoneria — colonne nuove su quotes/quote_items
+    await client.query(`
+      ALTER TABLE quotes
+        ADD COLUMN IF NOT EXISTS subject TEXT,
+        ADD COLUMN IF NOT EXISTS notes TEXT;
+    `);
+    await client.query(`
+      ALTER TABLE quotes
+        ALTER COLUMN global_params DROP NOT NULL;
+    `);
+    await client.query(`
+      ALTER TABLE quote_items
+        ALTER COLUMN article_id DROP NOT NULL;
+    `);
+    await client.query(`
+      ALTER TABLE quote_items
+        ADD COLUMN IF NOT EXISTS type TEXT,
+        ADD COLUMN IF NOT EXISTS material_id VARCHAR REFERENCES materials(id),
+        ADD COLUMN IF NOT EXISTS material_thickness_id VARCHAR REFERENCES material_thicknesses(id),
+        ADD COLUMN IF NOT EXISTS catalog_article_id VARCHAR REFERENCES catalog_articles(id),
+        ADD COLUMN IF NOT EXISTS labor_rate_id VARCHAR REFERENCES labor_rates(id),
+        ADD COLUMN IF NOT EXISTS description TEXT,
+        ADD COLUMN IF NOT EXISTS unit_of_measure TEXT,
+        ADD COLUMN IF NOT EXISTS development_mm NUMERIC(12, 3),
+        ADD COLUMN IF NOT EXISTS weight_kg NUMERIC(12, 4),
+        ADD COLUMN IF NOT EXISTS unit_cost NUMERIC(12, 4),
+        ADD COLUMN IF NOT EXISTS margin_percent NUMERIC(6, 2),
+        ADD COLUMN IF NOT EXISTS display_order INTEGER NOT NULL DEFAULT 0;
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS quote_items_type_idx ON quote_items (type);
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS quote_items_display_order_idx ON quote_items (display_order);
+    `);
   } finally {
     client.release();
   }

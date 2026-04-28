@@ -165,6 +165,7 @@ export interface IStorage {
   // Quotes (Preventivi)
   getQuotesByOpportunity(opportunityId: string, companyId: string): Promise<Quote[]>;
   getQuote(id: string, companyId: string): Promise<Quote | undefined>;
+  getQuoteNumbersByCompany(companyId: string): Promise<string[]>;
   createQuote(data: InsertQuote): Promise<Quote>;
   createQuoteWithNextNumber(data: Omit<InsertQuote, 'number'>, customNumber?: string): Promise<Quote>;
   updateQuote(id: string, companyId: string, data: Partial<InsertQuote>): Promise<Quote | undefined>;
@@ -1455,6 +1456,14 @@ export class DatabaseStorage implements IStorage {
    * con un lock FOR UPDATE sulle righe esistenti, garantendo unicità anche con richieste concorrenti.
    * Se viene passato un customNumber, lo usa direttamente (la validazione avviene nel route).
    */
+  async getQuoteNumbersByCompany(companyId: string): Promise<string[]> {
+    const rows = await db
+      .select({ number: quotes.number })
+      .from(quotes)
+      .where(eq(quotes.companyId, companyId));
+    return rows.map((r) => r.number).filter((n): n is string => Boolean(n));
+  }
+
   async createQuoteWithNextNumber(data: Omit<InsertQuote, 'number'>, customNumber?: string): Promise<Quote> {
     return await db.transaction(async (tx) => {
       // Acquisisci un advisory lock per-company per serializzare l'allocazione dei numeri.
@@ -1511,7 +1520,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(quoteItems)
       .where(eq(quoteItems.quoteId, quoteId))
-      .orderBy(quoteItems.phase);
+      .orderBy(quoteItems.displayOrder, quoteItems.phase);
   }
 
   async createQuoteItem(data: InsertQuoteItem): Promise<QuoteItem> {

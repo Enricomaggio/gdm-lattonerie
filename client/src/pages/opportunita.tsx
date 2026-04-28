@@ -2917,29 +2917,16 @@ export default function OpportunitaPage() {
                                   €{formatCurrency(parseFloat(quote.totalAmount || "0"))}
                                 </div>
                                 <div className="flex gap-0.5">
-                                  {quote.pdfData && (
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7"
-                                      onClick={() => navigate(`/opportunities/${selectedOpportunity.id}/quotes/new?edit=${quote.id}`)}
-                                      title="Modifica preventivo"
-                                      data-testid={`button-edit-quote-${quote.id}`}
-                                    >
-                                      <Pencil className="w-3.5 h-3.5" />
-                                    </Button>
-                                  )}
                                   <Button
                                     type="button"
                                     variant="ghost"
                                     size="icon"
                                     className="h-7 w-7"
                                     onClick={() => navigate(`/quotes/${quote.id}`)}
-                                    title="Visualizza preventivo"
-                                    data-testid={`button-view-quote-${quote.id}`}
+                                    title="Apri preventivo"
+                                    data-testid={`button-edit-quote-${quote.id}`}
                                   >
-                                    <Eye className="w-3.5 h-3.5" />
+                                    <Pencil className="w-3.5 h-3.5" />
                                   </Button>
                                 </div>
                               </div>

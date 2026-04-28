@@ -133,6 +133,10 @@ export interface TrasfertaData {
 export const quoteStatusEnum = ["DRAFT", "SENT", "ACCEPTED", "REJECTED"] as const;
 export type QuoteStatus = typeof quoteStatusEnum[number];
 
+// Enum per tipo riga preventivo (Catalogo Lattoneria)
+export const quoteItemTypeEnum = ["LATTONERIA", "ARTICOLO", "GIORNATE"] as const;
+export type QuoteItemType = typeof quoteItemTypeEnum[number];
+
 // Enum per fase riga preventivo (6 fasi Excel-style)
 export const quotePhaseEnum = [
   "DOCUMENTI",                // POS, Relazione Calcolo
@@ -619,7 +623,11 @@ export const quotes = pgTable("quotes", {
   number: text("number").notNull(), // Es. "PREV-2024-001"
   status: text("status").$type<QuoteStatus>().notNull().default("DRAFT"),
   totalAmount: numeric("total_amount", { precision: 12, scale: 2 }).notNull().default("0"),
-  globalParams: jsonb("global_params").$type<QuoteGlobalParams>().notNull(),
+  // Oggetto/descrizione e note libere del preventivo (Catalogo Lattoneria)
+  subject: text("subject"),
+  notes: text("notes"),
+  // Campi legacy ponteggi: nullable per supportare il nuovo preventivatore lattoneria
+  globalParams: jsonb("global_params").$type<QuoteGlobalParams>(),
   discounts: jsonb("discounts").$type<QuoteDiscounts>(), // Sconti per fase e globale
   handlingData: jsonb("handling_data").$type<HandlingData>(), // Dati movimentazione cantiere
   pdfData: jsonb("pdf_data"), // Dati completi per rendering PDF (totals, clausole, ecc.)
@@ -632,22 +640,57 @@ export const quotes = pgTable("quotes", {
   unique("quotes_company_id_number_unique").on(table.companyId, table.number),
 ]);
 
-// Tabella QuoteItems - Righe preventivo
+// Tabella QuoteItems - Righe preventivo (3 tipi: LATTONERIA, ARTICOLO, GIORNATE)
 export const quoteItems = pgTable("quote_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   quoteId: varchar("quote_id").notNull().references(() => quotes.id, { onDelete: "cascade" }),
-  articleId: varchar("article_id").notNull().references(() => articles.id),
+
+  // Tipo riga (Catalogo Lattoneria) — null per righe legacy ponteggi
+  type: text("type").$type<QuoteItemType>(),
+
+  // FK legacy verso articles (ponteggi). Nullable per nuove righe lattoneria.
+  articleId: varchar("article_id").references(() => articles.id),
+
+  // FK Catalogo Lattoneria (uno solo valorizzato in base al type)
+  materialId: varchar("material_id").references(() => materials.id),
+  materialThicknessId: varchar("material_thickness_id").references(() => materialThicknesses.id),
+  catalogArticleId: varchar("catalog_article_id").references(() => catalogArticles.id),
+  laborRateId: varchar("labor_rate_id").references(() => laborRates.id),
+
+  // Snapshot descrittivi (per stabilità anche se l'item del catalogo viene modificato/eliminato)
+  description: text("description"),
+  unitOfMeasure: text("unit_of_measure"),
+
+  // Per righe LATTONERIA: sviluppo in mm
+  developmentMm: numeric("development_mm", { precision: 12, scale: 3 }),
+
+  // Quantità: metri lineari (LATTONERIA), unità (ARTICOLO), giorni (GIORNATE)
   quantity: numeric("quantity", { precision: 12, scale: 4 }).notNull().default("0"),
+
+  // Snapshot calcoli congelati al salvataggio
+  weightKg: numeric("weight_kg", { precision: 12, scale: 4 }),
+  unitCost: numeric("unit_cost", { precision: 12, scale: 4 }),
+  marginPercent: numeric("margin_percent", { precision: 6, scale: 2 }),
+
+  // Campi legacy ponteggi
   phase: text("phase").$type<QuotePhase>(),
-  priceSnapshot: jsonb("price_snapshot").$type<PricingData>(), // Copia esatta del pricingData al momento del salvataggio
+  priceSnapshot: jsonb("price_snapshot").$type<PricingData>(),
+  vatRate: text("vat_rate").$type<VatRate>(),
+
+  // Prezzo finale (totalRow = totale riga, unitPriceApplied = prezzo unitario applicato)
   unitPriceApplied: numeric("unit_price_applied", { precision: 12, scale: 2 }).notNull().default("0"),
   totalRow: numeric("total_row", { precision: 12, scale: 2 }).notNull().default("0"),
-  vatRate: text("vat_rate").$type<VatRate>(), // Override aliquota IVA per singola voce (null = usa default preventivo)
+
+  // Ordinamento riga nel preventivo
+  displayOrder: integer("display_order").notNull().default(0),
+
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("quote_items_quote_id_idx").on(table.quoteId),
   index("quote_items_article_id_idx").on(table.articleId),
   index("quote_items_phase_idx").on(table.phase),
+  index("quote_items_type_idx").on(table.type),
+  index("quote_items_display_order_idx").on(table.displayOrder),
 ]);
 
 // Relazioni
