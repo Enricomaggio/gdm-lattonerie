@@ -54,7 +54,14 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Target, GripVertical, User, Trash2, MapPin, Copy, Building2, Briefcase, ExternalLink, Calculator, FileText, Eye, BellRing, Bell, Pencil, Settings, ArrowUp, ArrowDown, X, Camera, Video, Loader2, ClipboardCheck, AlertTriangle, Calendar, HardHat, Truck, Euro, Phone, Mail, Search, Filter, StickyNote, ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { Plus, Target, GripVertical, User, Trash2, MapPin, Copy, Building2, Briefcase, ExternalLink, Calculator, FileText, Eye, BellRing, Bell, Pencil, Settings, ArrowUp, ArrowDown, X, Camera, Video, Loader2, ClipboardCheck, AlertTriangle, Calendar, HardHat, Truck, Euro, Phone, Mail, Search, Filter, StickyNote, ChevronLeft, ChevronRight, Info, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ReminderModal } from "@/components/reminder-modal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import type { Opportunity, Lead, PipelineStage, ContactReferent, WorkType, LostReason, SiteQuality, QuoteStatus, Worker } from "@shared/schema";
@@ -2393,9 +2400,9 @@ export default function OpportunitaPage() {
           <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
             <Form {...editForm}>
               <form onSubmit={editForm.handleSubmit(handleEditSubmit)}>
-                <DialogHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
+                <DialogHeader className="pr-10">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
                       <DialogTitle>Dettagli Opportunità</DialogTitle>
                       <DialogDescription>
                         Visualizza e modifica i dati dell'opportunità.
@@ -2405,7 +2412,7 @@ export default function OpportunitaPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="shrink-0 gap-2 mr-6"
+                      className="shrink-0 gap-2"
                       onClick={() => setIsReminderModalOpen(true)}
                       data-testid="button-open-opportunity-reminders"
                     >
@@ -2534,7 +2541,7 @@ export default function OpportunitaPage() {
                                 const email = contactEmail || fallbackLead?.email || null;
                                 if (!phone && !email) return null;
                                 return (
-                                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-md border bg-muted/40 px-3 py-2">
                                     {phone && (
                                       <a
                                         href={`tel:${phone}`}
@@ -2685,7 +2692,7 @@ export default function OpportunitaPage() {
                       )}
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:items-start">
                     <div className="border rounded-lg p-4 space-y-4">
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
@@ -2706,12 +2713,13 @@ export default function OpportunitaPage() {
                           </Button>
                         )}
                       </div>
-                      <div className="grid gap-3" style={{ gridTemplateColumns: "5fr 4fr 1.5fr 1.5fr" }}>
+                      <div className="grid grid-cols-2 sm:grid-cols-12 gap-3">
                         <FormField
                           control={editForm.control}
                           name="siteAddress"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="col-span-2 sm:col-span-7">
+                              <FormLabel>Indirizzo</FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="Via/Indirizzo"
@@ -2727,7 +2735,8 @@ export default function OpportunitaPage() {
                           control={editForm.control}
                           name="siteCity"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="col-span-2 sm:col-span-5">
+                              <FormLabel>Città</FormLabel>
                               <FormControl>
                                 <CityAutocomplete
                                   value={field.value || ""}
@@ -2757,7 +2766,8 @@ export default function OpportunitaPage() {
                           control={editForm.control}
                           name="siteZip"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="col-span-1 sm:col-span-3">
+                              <FormLabel>CAP</FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="CAP"
@@ -2773,13 +2783,31 @@ export default function OpportunitaPage() {
                           control={editForm.control}
                           name="siteProvince"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="col-span-1 sm:col-span-3">
+                              <FormLabel>Provincia</FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="Prov."
                                   maxLength={2}
                                   {...field}
                                   data-testid="input-edit-site-province"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={editForm.control}
+                          name="mapsLink"
+                          render={({ field }) => (
+                            <FormItem className="col-span-2 sm:col-span-6">
+                              <FormLabel>Link Google Maps</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Link Google Maps"
+                                  {...field}
+                                  data-testid="input-edit-maps-link"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -2815,22 +2843,6 @@ export default function OpportunitaPage() {
                           )}
                         />
                       )}
-                      <FormField
-                        control={editForm.control}
-                        name="mapsLink"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                placeholder="Link Google Maps"
-                                {...field}
-                                data-testid="input-edit-maps-link"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                     </div>
 
                     <div className="space-y-5">
@@ -2847,7 +2859,12 @@ export default function OpportunitaPage() {
                           <FormItem>
                             <FormLabel>Descrizione</FormLabel>
                             <FormControl>
-                              <Textarea rows={3} {...field} data-testid="input-edit-description" />
+                              <Textarea
+                                rows={5}
+                                className="min-h-[120px]"
+                                {...field}
+                                data-testid="input-edit-description"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -2875,7 +2892,7 @@ export default function OpportunitaPage() {
                       )}
                     </div>
 
-                    <div className="border rounded-lg p-4 space-y-3">
+                    <div className="border rounded-lg p-4 space-y-4">
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
                           <FileText className="w-3.5 h-3.5" />
@@ -2939,42 +2956,52 @@ export default function OpportunitaPage() {
                 </div>
                 </div>
 
-                <DialogFooter className="flex justify-between gap-2 mt-4">
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      onClick={handleDeleteClick}
-                      disabled={deleteOpportunityMutation.isPending}
-                      data-testid="button-delete-opportunity"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {deleteOpportunityMutation.isPending ? "Eliminazione..." : "Elimina"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsDuplicateDialogOpen(true)}
-                      disabled={duplicateOpportunityMutation.isPending}
-                      data-testid="button-duplicate-opportunity"
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Duplica
-                    </Button>
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => {
-                        setIsDetailOpen(false);
-                        navigate(`/opportunities/${selectedOpportunity?.id}/quotes/new`);
-                      }}
-                      data-testid="button-create-quote"
-                    >
-                      <Calculator className="w-4 h-4 mr-2" />
-                      Crea Preventivo
-                    </Button>
+                <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 mt-6 pt-4 border-t">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2 text-muted-foreground sm:mr-auto"
+                        data-testid="button-opportunity-more-actions"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                        Altre azioni
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56">
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setIsDetailOpen(false);
+                          navigate(`/opportunities/${selectedOpportunity?.id}/quotes/new`);
+                        }}
+                        data-testid="button-create-quote"
+                      >
+                        <Calculator className="w-4 h-4 mr-2" />
+                        Crea Preventivo
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => setIsDuplicateDialogOpen(true)}
+                        disabled={duplicateOpportunityMutation.isPending}
+                        data-testid="button-duplicate-opportunity"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Duplica
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onSelect={handleDeleteClick}
+                        disabled={deleteOpportunityMutation.isPending}
+                        className="text-destructive focus:text-destructive"
+                        data-testid="button-delete-opportunity"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {deleteOpportunityMutation.isPending ? "Eliminazione..." : "Elimina"}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <div className="flex gap-2 sm:justify-end">
                     <Button
                       type="button"
                       variant="outline"
