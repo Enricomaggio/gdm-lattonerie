@@ -2560,12 +2560,12 @@ export default function OpportunitaPage() {
                                   href={`/leads/${watchEditLeadId}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
-                                  title="Apri scheda contatto"
+                                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                                   onClick={(e) => e.stopPropagation()}
                                   data-testid="link-open-contact"
                                 >
                                   <ExternalLink className="w-3 h-3" />
+                                  Apri scheda
                                 </a>
                               )}
                             </div>
