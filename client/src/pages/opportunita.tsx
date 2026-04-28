@@ -761,9 +761,7 @@ function OpportunityCard({ opportunity, lead, onClick, assignedUserName, isAdmin
     <div
       ref={setNodeRef}
       style={style}
-      className={`border rounded-md p-3 shadow-sm hover-elevate cursor-grab active:cursor-grabbing relative ${
-        isInWonStage && !opportunity.sopralluogoFatto ? "bg-red-50 border-red-300" : "bg-card"
-      }`}
+      className="border rounded-md p-3 shadow-sm hover-elevate cursor-grab active:cursor-grabbing relative bg-card"
       data-testid={`card-opportunity-${opportunity.id}`}
       onClick={handleClick}
       {...attributes}
@@ -2833,147 +2831,9 @@ export default function OpportunitaPage() {
                           </FormItem>
                         )}
                       />
-                      <div className="flex items-center gap-3">
-                        <FormField
-                          control={editForm.control}
-                          name="siteDistanceKm"
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel className="text-xs">Distanza cantiere (km)</FormLabel>
-                              <div className="flex items-center gap-2">
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    {...field}
-                                    data-testid="input-edit-site-distance"
-                                  />
-                                </FormControl>
-                                {field.value && parseInt(field.value) > 0 && (
-                                  <Badge variant="outline" className="text-xs shrink-0">A/R: {parseInt(field.value) * 2} km</Badge>
-                                )}
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={editForm.control}
-                          name="siteSquadraInZonaKm"
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel className="text-xs flex items-center gap-1.5">
-                                <input
-                                  type="checkbox"
-                                  checked={!!field.value && field.value !== "0"}
-                                  onChange={(e) => field.onChange(e.target.checked ? "50" : "")}
-                                  className="rounded border-gray-300"
-                                  data-testid="checkbox-edit-squadra-in-zona"
-                                />
-                                Squadra in zona
-                                {externalWorkers.length > 0 && (
-                                  <button
-                                    type="button"
-                                    className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                                    onClick={(e) => { e.preventDefault(); setShowSquadreInfoDialog(true); }}
-                                    title="Vedi città squadre esterne"
-                                    data-testid="button-edit-info-squadre-esterne"
-                                  >
-                                    <Info className="w-3 h-3" />
-                                  </button>
-                                )}
-                              </FormLabel>
-                              {field.value && field.value !== "0" && (
-                                <div className="flex items-center gap-2">
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      placeholder="Km effettivi"
-                                      {...field}
-                                      data-testid="input-edit-squadra-in-zona-km"
-                                    />
-                                  </FormControl>
-                                  <span className="text-xs text-muted-foreground shrink-0">km</span>
-                                </div>
-                              )}
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <FormField
-                          control={editForm.control}
-                          name="estimatedStartDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Data inizio indicativa</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} data-testid="input-edit-estimated-start" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
                     </div>
 
                     <div className="space-y-5">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full gap-2 border-[#4563FF] text-[#4563FF] hover:bg-[#4563FF]/10"
-                        onClick={() => setIsSchedaOpen(true)}
-                        data-testid="button-scheda-cantiere"
-                      >
-                        <FileText className="w-4 h-4" />
-                        Scheda Cantiere
-                      </Button>
-                      <div
-                        className={`flex items-center justify-between w-full px-4 py-2 rounded-md border cursor-pointer transition-colors ${
-                          selectedOpportunity?.sopralluogoFatto
-                            ? "border-green-500 text-green-600 bg-green-50/50"
-                            : "border-red-500 text-red-600 bg-red-50/50"
-                        }`}
-                        onClick={() => {
-                          if (selectedOpportunity && !toggleSopralluogoMutation.isPending) {
-                            toggleSopralluogoMutation.mutate({
-                              opportunityId: selectedOpportunity.id,
-                              value: !selectedOpportunity.sopralluogoFatto,
-                            });
-                          }
-                        }}
-                        data-testid="button-toggle-sopralluogo"
-                      >
-                        <div className="flex items-center gap-2 text-sm font-medium">
-                          {selectedOpportunity?.sopralluogoFatto ? (
-                            <ClipboardCheck className="w-4 h-4" />
-                          ) : (
-                            <AlertTriangle className="w-4 h-4" />
-                          )}
-                          {selectedOpportunity?.sopralluogoFatto ? "Sopralluogo fatto" : "Sopralluogo da fare"}
-                        </div>
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <Switch
-                            checked={!!selectedOpportunity?.sopralluogoFatto}
-                            onCheckedChange={(checked) => {
-                              if (selectedOpportunity) {
-                                toggleSopralluogoMutation.mutate({
-                                  opportunityId: selectedOpportunity.id,
-                                  value: checked,
-                                });
-                              }
-                            }}
-                            disabled={toggleSopralluogoMutation.isPending}
-                            className={selectedOpportunity?.sopralluogoFatto ? "data-[state=checked]:bg-green-500" : ""}
-                            data-testid="switch-sopralluogo"
-                          />
-                        </div>
-                      </div>
-                    </div>
 
                     <div className="border rounded-lg p-4 space-y-4">
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">

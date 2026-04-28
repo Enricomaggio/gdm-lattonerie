@@ -187,9 +187,9 @@ function DraggableProjectCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`border rounded-md p-3 shadow-sm cursor-grab active:cursor-grabbing relative ${
+      className={`border rounded-md p-3 shadow-sm cursor-grab active:cursor-grabbing relative bg-card ${
         isDragging ? "shadow-lg" : "hover-elevate"
-      } ${!project.sopralluogoFatto ? "bg-red-50 border-red-300" : "bg-card"}`}
+      }`}
       onClick={handleClick}
       data-testid={`project-card-${project.id}`}
       {...attributes}
