@@ -54,7 +54,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Target, GripVertical, User, Trash2, MapPin, Copy, Building2, Briefcase, ExternalLink, Calculator, FileText, Eye, BellRing, Bell, Pencil, Settings, ArrowUp, ArrowDown, X, Camera, Video, Loader2, ClipboardCheck, AlertTriangle, Calendar, HardHat, Truck, Euro, Phone, Mail, Search, StickyNote, ChevronLeft, ChevronRight, Info, MoreHorizontal } from "lucide-react";
+import { Plus, Target, GripVertical, User, Trash2, MapPin, Copy, Building2, Briefcase, ExternalLink, Calculator, FileText, Eye, BellRing, Bell, Pencil, Settings, ArrowUp, ArrowDown, X, Camera, Video, Loader2, ClipboardCheck, AlertTriangle, Calendar, HardHat, Truck, Euro, Phone, Mail, Search, StickyNote, ChevronLeft, ChevronRight, Info, MoreHorizontal, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -2336,14 +2336,129 @@ export default function OpportunitaPage() {
           <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-4 sm:p-5 gap-3">
             <Form {...editForm}>
               <form onSubmit={editForm.handleSubmit(handleEditSubmit)}>
-                <DialogHeader className="pr-10 space-y-0.5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-0.5">
-                      <DialogTitle className="text-base sm:text-lg">Dettagli Opportunità</DialogTitle>
-                      <DialogDescription className="text-xs">
-                        Visualizza e modifica i dati dell'opportunità.
-                      </DialogDescription>
-                    </div>
+                <DialogHeader className="pr-10 space-y-2 pb-3 border-b mb-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <FormField
+                      control={editForm.control}
+                      name="stageId"
+                      render={({ field }) => {
+                        const currentStage = stages.find(s => s.id === field.value);
+                        return (
+                          <div className="flex flex-col gap-1.5">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 px-2.5 text-xs gap-1.5"
+                                  data-testid="select-edit-stage"
+                                >
+                                  <div
+                                    className="w-2 h-2 rounded-full shrink-0"
+                                    style={{ backgroundColor: currentStage?.color || "#888" }}
+                                  />
+                                  {currentStage?.name || "Seleziona fase"}
+                                  <ChevronDown className="w-3 h-3 opacity-60" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start">
+                                {stages.map((stage) => (
+                                  <DropdownMenuItem
+                                    key={stage.id}
+                                    onSelect={() => field.onChange(stage.id)}
+                                    className="gap-2"
+                                  >
+                                    <div
+                                      className="w-2 h-2 rounded-full shrink-0"
+                                      style={{ backgroundColor: stage.color }}
+                                    />
+                                    {stage.name}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            {isLostStage(field.value) && (
+                              <FormField
+                                control={editForm.control}
+                                name="lostReason"
+                                render={({ field: lrField }) => (
+                                  <FormItem>
+                                    <Select
+                                      onValueChange={(val) => lrField.onChange(val === "_none" ? null : val)}
+                                      value={lrField.value || "_none"}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger className="h-7 text-xs w-44" data-testid="select-edit-lost-reason">
+                                          <SelectValue placeholder="Motivazione..." />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="_none">Nessuna</SelectItem>
+                                        {lostReasonEnum.map((reason) => (
+                                          <SelectItem key={reason} value={reason}>
+                                            {lostReasonLabels[reason]}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            )}
+                            {isWonStage(field.value) && (
+                              <FormField
+                                control={editForm.control}
+                                name="siteQuality"
+                                render={({ field: sqField }) => (
+                                  <FormItem>
+                                    <Select
+                                      onValueChange={sqField.onChange}
+                                      value={sqField.value || ""}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger className="h-7 text-xs w-52" data-testid="select-edit-site-quality">
+                                          <SelectValue placeholder="Com'è il cantiere?" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {siteQualityEnum.map((quality) => (
+                                          <SelectItem key={quality} value={quality}>
+                                            {siteQualityLabels[quality]}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+
+                    <FormField
+                      control={editForm.control}
+                      name="value"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-1.5 ml-auto">
+                          <span className="text-xs text-muted-foreground font-medium shrink-0">Valore</span>
+                          <div className="relative flex items-center">
+                            <span className="absolute left-2 text-xs text-muted-foreground pointer-events-none">€</span>
+                            <Input
+                              type="number"
+                              {...field}
+                              className="pl-5 h-7 w-32 text-xs font-semibold"
+                              data-testid="input-edit-value"
+                            />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
                     <Button
                       type="button"
                       variant="outline"
@@ -2356,404 +2471,308 @@ export default function OpportunitaPage() {
                       Promemoria
                     </Button>
                   </div>
+
+                  <DialogTitle className="font-normal p-0 m-0">
+                    <FormField
+                      control={editForm.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Titolo cantiere..."
+                              className="text-base font-semibold border-0 shadow-none px-0 focus-visible:ring-0 h-auto py-0.5 bg-transparent"
+                              data-testid="input-edit-title"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </DialogTitle>
+                  <DialogDescription className="sr-only">Visualizza e modifica i dati dell'opportunità.</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-3 py-3">
                   <div className="border rounded-md p-3 space-y-3">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                      <Building2 className="w-3.5 h-3.5" />
-                      Informazioni
+                      <User className="w-3.5 h-3.5" />
+                      Contatto
                     </p>
-                      <FormField
-                          control={editForm.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Titolo Cantiere *</FormLabel>
-                              <FormControl>
-                                <Input {...field} data-testid="input-edit-title" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="space-y-3">
-                          <FormField
-                            control={editForm.control}
-                            name="leadId"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="flex items-center gap-2">
-                                  Contatto *
-                                  {watchEditLeadId && (
-                                    <a
-                                      href={`/leads/${watchEditLeadId}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-muted-foreground hover:text-primary"
-                                      title="Apri scheda contatto"
-                                      onClick={(e) => e.stopPropagation()}
-                                      data-testid="link-open-contact"
-                                    >
-                                      <ExternalLink className="w-3.5 h-3.5" />
-                                    </a>
-                                  )}
-                                </FormLabel>
-                                <Select onValueChange={(value) => {
-                                  field.onChange(value);
-                                  editForm.setValue("referentId", "");
-                                }} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-edit-lead">
-                                      <SelectValue placeholder="Seleziona un contatto" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {leads.map((lead) => (
-                                      <SelectItem key={lead.id} value={lead.id}>
-                                        {lead.entityType === "COMPANY" 
-                                          ? (lead.name || `${lead.firstName} ${lead.lastName}`)
-                                          : `${lead.firstName} ${lead.lastName}`}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
+
+                    {(() => {
+                      const watchReferentId = editForm.watch("referentId");
+                      const selRef = editReferents.find(r => r.id === watchReferentId);
+                      const phone = selRef ? (selRef.phone || selRef.mobile) : selectedEditLead?.phone;
+                      const email = selRef ? selRef.email : selectedEditLead?.email;
+                      const displayName = selRef
+                        ? `${selRef.firstName} ${selRef.lastName}`
+                        : selectedEditLead?.entityType === "COMPANY"
+                          ? (selectedEditLead?.name || `${selectedEditLead?.firstName || ""} ${selectedEditLead?.lastName || ""}`.trim())
+                          : selectedEditLead
+                            ? `${selectedEditLead.firstName || ""} ${selectedEditLead.lastName || ""}`.trim()
+                            : null;
+                      const initials = displayName
+                        ? displayName.split(" ").filter(Boolean).map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+                        : "?";
+                      const role = selRef?.role;
+                      const company = selRef && selectedEditLead?.entityType === "COMPANY"
+                        ? (selectedEditLead?.name || "")
+                        : "";
+                      if (!selectedEditLead) return null;
+                      return (
+                        <div className="flex items-start gap-3 rounded-md border bg-muted/30 px-3 py-2.5">
+                          <div className="w-9 h-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-sm font-semibold shrink-0">
+                            {initials}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-sm font-semibold truncate">{displayName}</span>
+                              {role && <span className="text-xs text-muted-foreground">· {role}</span>}
+                            </div>
+                            {company && selRef && (
+                              <div className="text-xs text-muted-foreground truncate">{company}</div>
                             )}
-                          />
-                          <FormField
-                            control={editForm.control}
-                            name="referentId"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Referente</FormLabel>
-                                <Select 
-                                  onValueChange={field.onChange} 
-                                  value={field.value}
-                                  disabled={!watchEditLeadId || editReferents.length === 0}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                              {phone && (
+                                <a
+                                  href={`tel:${phone}`}
+                                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                  data-testid="link-edit-referent-phone"
                                 >
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-edit-referent">
-                                      <SelectValue placeholder={
-                                        !watchEditLeadId 
-                                          ? "Prima seleziona un contatto" 
-                                          : editReferents.length === 0 
-                                            ? "Nessun referente" 
-                                            : "Seleziona referente"
-                                      } />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {editReferents.map((ref) => (
-                                      <SelectItem key={ref.id} value={ref.id}>
-                                        {ref.firstName} {ref.lastName} {ref.role && `(${ref.role})`}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                {(() => {
-                                  const selRef = editReferents.find(r => r.id === field.value);
-                                  const contactPhone = selRef ? (selRef.phone || selRef.mobile) : null;
-                                  const contactEmail = selRef ? selRef.email : null;
-                                  const fallbackLead = !selRef ? selectedEditLead : null;
-                                  const phone = contactPhone || fallbackLead?.phone || null;
-                                  const email = contactEmail || fallbackLead?.email || null;
-                                  if (!phone && !email) return null;
-                                  return (
-                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-md border bg-muted/40 px-3 py-2">
-                                      {phone && (
-                                        <a
-                                          href={`tel:${phone}`}
-                                          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
-                                          data-testid="link-edit-referent-phone"
-                                        >
-                                          <Phone className="w-3.5 h-3.5" />
-                                          {phone}
-                                        </a>
-                                      )}
-                                      {email && (
-                                        <a
-                                          href={`mailto:${email}`}
-                                          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
-                                          data-testid="link-edit-referent-email"
-                                        >
-                                          <Mail className="w-3.5 h-3.5" />
-                                          {email}
-                                        </a>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div className="space-y-3">
-                          <FormField
-                            control={editForm.control}
-                            name="value"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Valore Preventivo (€)</FormLabel>
-                                <FormControl>
-                                  <Input type="number" {...field} data-testid="input-edit-value" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={editForm.control}
-                            name="stageId"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Fase *</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-edit-stage">
-                                      <SelectValue placeholder="Seleziona una fase" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {stages.map((stage) => (
-                                      <SelectItem key={stage.id} value={stage.id}>
-                                        <div className="flex items-center gap-2">
-                                          <div
-                                            className="w-2 h-2 rounded-full"
-                                            style={{ backgroundColor: stage.color }}
-                                          />
-                                          {stage.name}
-                                        </div>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          {isLostStage(watchEditStageId) && (
-                            <FormField
-                              control={editForm.control}
-                              name="lostReason"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Motivazione Persa</FormLabel>
-                                  <Select
-                                    onValueChange={(val) => field.onChange(val === "_none" ? null : val)}
-                                    value={field.value || "_none"}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger data-testid="select-edit-lost-reason">
-                                        <SelectValue placeholder="Seleziona motivazione" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="_none">Nessuna</SelectItem>
-                                      {lostReasonEnum.map((reason) => (
-                                        <SelectItem key={reason} value={reason}>
-                                          {lostReasonLabels[reason]}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
+                                  <Phone className="w-3 h-3" />
+                                  {phone}
+                                </a>
                               )}
-                            />
-                          )}
-                          {isWonStage(watchEditStageId) && (
-                            <FormField
-                              control={editForm.control}
-                              name="siteQuality"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Com'è il cantiere? *</FormLabel>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value || ""}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger data-testid="select-edit-site-quality">
-                                        <SelectValue placeholder="Seleziona..." />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {siteQualityEnum.map((quality) => (
-                                        <SelectItem key={quality} value={quality}>
-                                          {siteQualityLabels[quality]}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
+                              {email && (
+                                <a
+                                  href={`mailto:${email}`}
+                                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                  data-testid="link-edit-referent-email"
+                                >
+                                  <Mail className="w-3 h-3" />
+                                  {email}
+                                </a>
                               )}
-                            />
-                          )}
+                              {watchEditLeadId && (
+                                <a
+                                  href={`/leads/${watchEditLeadId}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+                                  title="Apri scheda contatto"
+                                  onClick={(e) => e.stopPropagation()}
+                                  data-testid="link-open-contact"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      );
+                    })()}
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <FormField
+                        control={editForm.control}
+                        name="leadId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Select onValueChange={(value) => {
+                              field.onChange(value);
+                              editForm.setValue("referentId", "");
+                            }} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-edit-lead">
+                                  <SelectValue placeholder="Seleziona contatto" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {leads.map((lead) => (
+                                  <SelectItem key={lead.id} value={lead.id}>
+                                    {lead.entityType === "COMPANY"
+                                      ? (lead.name || `${lead.firstName} ${lead.lastName}`)
+                                      : `${lead.firstName} ${lead.lastName}`}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name="referentId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              disabled={!watchEditLeadId || editReferents.length === 0}
+                            >
+                              <FormControl>
+                                <SelectTrigger data-testid="select-edit-referent">
+                                  <SelectValue placeholder={
+                                    !watchEditLeadId
+                                      ? "Prima un contatto"
+                                      : editReferents.length === 0
+                                        ? "Nessun referente"
+                                        : "Seleziona referente"
+                                  } />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {editReferents.map((ref) => (
+                                  <SelectItem key={ref.id} value={ref.id}>
+                                    {ref.firstName} {ref.lastName} {ref.role && `(${ref.role})`}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border rounded-md p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5" />
+                        Cantiere
+                      </p>
+                      {selectedEditLead?.address && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={copyEditAddressFromContact}
+                          className="text-xs h-6 px-2"
+                          data-testid="button-edit-copy-address"
+                        >
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copia dal Contatto
+                        </Button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-12 gap-2">
+                      <FormField
+                        control={editForm.control}
+                        name="siteAddress"
+                        render={({ field }) => (
+                          <FormItem className="col-span-12 sm:col-span-5">
+                            <FormLabel className="text-xs">Indirizzo</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Via/Indirizzo" {...field} data-testid="input-edit-site-address" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name="siteCity"
+                        render={({ field }) => (
+                          <FormItem className="col-span-12 sm:col-span-3">
+                            <FormLabel className="text-xs">Città</FormLabel>
+                            <FormControl>
+                              <CityAutocomplete
+                                value={field.value || ""}
+                                onChange={(val) => {
+                                  field.onChange(val);
+                                  if (!val.toLowerCase().includes("venezia")) {
+                                    editForm.setValue("veniceZone", "");
+                                  }
+                                }}
+                                onCitySelect={(city) => {
+                                  field.onChange(city.name);
+                                  editForm.setValue("siteZip", city.cap);
+                                  editForm.setValue("siteProvince", city.province);
+                                  if (!city.name.toLowerCase().includes("venezia")) {
+                                    editForm.setValue("veniceZone", "");
+                                  }
+                                }}
+                                placeholder="Città"
+                                data-testid="input-edit-site-city"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name="siteZip"
+                        render={({ field }) => (
+                          <FormItem className="col-span-6 sm:col-span-2">
+                            <FormLabel className="text-xs">CAP</FormLabel>
+                            <FormControl>
+                              <Input placeholder="CAP" {...field} data-testid="input-edit-site-zip" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name="siteProvince"
+                        render={({ field }) => (
+                          <FormItem className="col-span-6 sm:col-span-2">
+                            <FormLabel className="text-xs">Prov.</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Prov." maxLength={2} {...field} data-testid="input-edit-site-province" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name="mapsLink"
+                        render={({ field }) => (
+                          <FormItem className="col-span-12">
+                            <FormLabel className="text-xs">Link Google Maps</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Link Google Maps" {...field} data-testid="input-edit-maps-link" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    {watchEditSiteCity && watchEditSiteCity.toLowerCase().includes("venezia") && (
+                      <FormField
+                        control={editForm.control}
+                        name="veniceZone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium text-blue-700">Zona Venezia (Trasporto Lagunare)</FormLabel>
+                            <Select value={field.value || ""} onValueChange={field.onChange}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-edit-venice-zone">
+                                  <SelectValue placeholder="Seleziona zona..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="NO">No (trasporto non lagunare)</SelectItem>
+                                {VENICE_ZONES.map((zone) => (
+                                  <SelectItem key={zone} value={zone}>{zone}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:items-stretch">
-                    <div className="border rounded-md p-3 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5" />
-                          Cantiere
-                        </p>
-                        {selectedEditLead?.address && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={copyEditAddressFromContact}
-                            className="text-xs h-6 px-2"
-                            data-testid="button-edit-copy-address"
-                          >
-                            <Copy className="w-3 h-3 mr-1" />
-                            Copia dal Contatto
-                          </Button>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-12 gap-3">
-                        <FormField
-                          control={editForm.control}
-                          name="siteAddress"
-                          render={({ field }) => (
-                            <FormItem className="col-span-12 sm:col-span-5">
-                              <FormLabel>Indirizzo</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Via/Indirizzo"
-                                  {...field}
-                                  data-testid="input-edit-site-address"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={editForm.control}
-                          name="siteCity"
-                          render={({ field }) => (
-                            <FormItem className="col-span-12 sm:col-span-3">
-                              <FormLabel>Città</FormLabel>
-                              <FormControl>
-                                <CityAutocomplete
-                                  value={field.value || ""}
-                                  onChange={(val) => {
-                                    field.onChange(val);
-                                    if (!val.toLowerCase().includes("venezia")) {
-                                      editForm.setValue("veniceZone", "");
-                                    }
-                                  }}
-                                  onCitySelect={(city) => {
-                                    field.onChange(city.name);
-                                    editForm.setValue("siteZip", city.cap);
-                                    editForm.setValue("siteProvince", city.province);
-                                    if (!city.name.toLowerCase().includes("venezia")) {
-                                      editForm.setValue("veniceZone", "");
-                                    }
-                                  }}
-                                  placeholder="Città"
-                                  data-testid="input-edit-site-city"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={editForm.control}
-                          name="siteZip"
-                          render={({ field }) => (
-                            <FormItem className="col-span-6 sm:col-span-2">
-                              <FormLabel>CAP</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="CAP"
-                                  {...field}
-                                  data-testid="input-edit-site-zip"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={editForm.control}
-                          name="siteProvince"
-                          render={({ field }) => (
-                            <FormItem className="col-span-6 sm:col-span-2">
-                              <FormLabel>Provincia</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Prov."
-                                  maxLength={2}
-                                  {...field}
-                                  data-testid="input-edit-site-province"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={editForm.control}
-                          name="mapsLink"
-                          render={({ field }) => (
-                            <FormItem className="col-span-12">
-                              <FormLabel>Link Google Maps</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Link Google Maps"
-                                  {...field}
-                                  data-testid="input-edit-maps-link"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      {watchEditSiteCity && watchEditSiteCity.toLowerCase().includes("venezia") && (
-                        <FormField
-                          control={editForm.control}
-                          name="veniceZone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs font-medium text-blue-700">Zona Venezia (Trasporto Lagunare)</FormLabel>
-                              <Select
-                                value={field.value || ""}
-                                onValueChange={field.onChange}
-                              >
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-edit-venice-zone">
-                                    <SelectValue placeholder="Seleziona zona..." />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="NO">No (trasporto non lagunare)</SelectItem>
-                                  {VENICE_ZONES.map((zone) => (
-                                    <SelectItem key={zone} value={zone}>{zone}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                    </div>
-
-                    <div className="space-y-3 flex flex-col">
-
-                    <div className="border rounded-md p-3 space-y-2">
+                    <div className="border rounded-md p-3 space-y-2 flex flex-col">
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
                         <StickyNote className="w-3.5 h-3.5" />
                         Note
@@ -2762,11 +2781,11 @@ export default function OpportunitaPage() {
                         control={editForm.control}
                         name="description"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="flex-1">
                             <FormControl>
                               <Textarea
-                                rows={3}
-                                className="min-h-[72px] resize-y"
+                                rows={4}
+                                className="min-h-[80px] resize-y"
                                 {...field}
                                 data-testid="input-edit-description"
                               />
@@ -2797,14 +2816,14 @@ export default function OpportunitaPage() {
                       )}
                     </div>
 
-                    <div className="border rounded-md p-3 space-y-2 flex-1 flex flex-col">
+                    <div className="border rounded-md p-3 space-y-2 flex flex-col">
                       <div className="flex items-center justify-between">
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
                           <FileText className="w-3.5 h-3.5" />
-                          Preventivi Salvati
+                          Preventivi
                         </p>
                         <span className="text-[11px] text-muted-foreground">
-                          {opportunityQuotes.length} preventiv{opportunityQuotes.length === 1 ? 'o' : 'i'}
+                          {opportunityQuotes.length} salvat{opportunityQuotes.length === 1 ? 'o' : 'i'}
                         </span>
                       </div>
                       {isLoadingQuotes ? (
@@ -2813,12 +2832,12 @@ export default function OpportunitaPage() {
                           <Skeleton className="h-9 w-full" />
                         </div>
                       ) : opportunityQuotes.length === 0 ? (
-                        <div className="text-center py-3 text-muted-foreground text-xs border rounded-md bg-muted/30">
+                        <div className="flex-1 flex flex-col items-center justify-center text-center py-3 text-muted-foreground text-xs border rounded-md bg-muted/30">
                           <FileText className="w-5 h-5 mx-auto mb-1 opacity-50" />
                           Nessun preventivo salvato
                         </div>
                       ) : (
-                        <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                        <div className="space-y-1.5 max-h-48 overflow-y-auto flex-1">
                           {opportunityQuotes.map((quote) => (
                             <div
                               key={quote.id}
@@ -2856,7 +2875,6 @@ export default function OpportunitaPage() {
                       )}
                     </div>
                   </div>
-                </div>
                 </div>
 
                 <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 mt-3 pt-3 border-t">
