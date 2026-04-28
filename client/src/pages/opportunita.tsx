@@ -4,7 +4,7 @@ import { WinCelebration } from "@/components/ui/win-celebration";
 import { Switch } from "@/components/ui/switch";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -927,6 +927,46 @@ function LoadingSkeleton() {
         </div>
       ))}
     </div>
+  );
+}
+
+function InlineValueField({ field }: { field: ControllerRenderProps<OpportunityFormValues, "value"> }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const numeric = Number(field.value);
+  const formattedValue = field.value != null && field.value !== "" && !isNaN(numeric)
+    ? `€ ${numeric.toLocaleString("it-IT")}`
+    : "€ —";
+  return (
+    <FormItem className="flex items-center gap-1.5 ml-auto">
+      <span className="text-xs text-muted-foreground font-medium shrink-0">Valore</span>
+      <div className="relative flex items-center">
+        {isEditing ? (
+          <>
+            <span className="absolute left-2 text-xs text-muted-foreground pointer-events-none">€</span>
+            <Input
+              type="number"
+              {...field}
+              autoFocus
+              className="pl-5 h-7 w-32 text-xs font-semibold"
+              data-testid="input-edit-value"
+              onBlur={() => {
+                field.onBlur();
+                setIsEditing(false);
+              }}
+            />
+          </>
+        ) : (
+          <button
+            type="button"
+            data-testid="input-edit-value"
+            onClick={() => setIsEditing(true)}
+            className="h-7 min-w-[8rem] px-2 text-xs font-semibold rounded border border-transparent hover:border-input hover:bg-background transition-colors text-left"
+          >
+            {formattedValue}
+          </button>
+        )}
+      </div>
+    </FormItem>
   );
 }
 
@@ -2444,18 +2484,7 @@ export default function OpportunitaPage() {
                       control={editForm.control}
                       name="value"
                       render={({ field }) => (
-                        <FormItem className="flex items-center gap-1.5 ml-auto">
-                          <span className="text-xs text-muted-foreground font-medium shrink-0">Valore</span>
-                          <div className="relative flex items-center">
-                            <span className="absolute left-2 text-xs text-muted-foreground pointer-events-none">€</span>
-                            <Input
-                              type="number"
-                              {...field}
-                              className="pl-5 h-7 w-32 text-xs font-semibold"
-                              data-testid="input-edit-value"
-                            />
-                          </div>
-                        </FormItem>
+                        <InlineValueField field={field} />
                       )}
                     />
 
