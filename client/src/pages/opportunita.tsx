@@ -1777,8 +1777,7 @@ export default function OpportunitaPage() {
                         <Building2 className="w-3.5 h-3.5" />
                         Informazioni
                       </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <FormField
+                    <FormField
                         control={form.control}
                         name="title"
                         render={({ field }) => (
@@ -1795,142 +1794,62 @@ export default function OpportunitaPage() {
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
-                        name="value"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Valore Preventivo (€)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="es. 15000"
-                                {...field}
-                                data-testid="input-opportunity-value"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <FormField
-                        control={form.control}
-                        name="leadId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Contatto *</FormLabel>
-                            <FormControl>
-                              <SearchableSelect
-                                data-testid="select-lead"
-                                options={leads.map((lead) => ({
-                                  value: lead.id,
-                                  label: lead.entityType === "COMPANY"
-                                    ? (lead.name || `${lead.firstName} ${lead.lastName}`)
-                                    : `${lead.firstName} ${lead.lastName}`,
-                                }))}
+                      <div className="space-y-3">
+                        <FormField
+                          control={form.control}
+                          name="leadId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Contatto *</FormLabel>
+                              <FormControl>
+                                <SearchableSelect
+                                  data-testid="select-lead"
+                                  options={leads.map((lead) => ({
+                                    value: lead.id,
+                                    label: lead.entityType === "COMPANY"
+                                      ? (lead.name || `${lead.firstName} ${lead.lastName}`)
+                                      : `${lead.firstName} ${lead.lastName}`,
+                                  }))}
+                                  value={field.value}
+                                  onChange={(value) => {
+                                    field.onChange(value);
+                                    form.setValue("referentId", "");
+                                  }}
+                                  placeholder="Seleziona un contatto"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="referentId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Referente</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
                                 value={field.value}
-                                onChange={(value) => {
-                                  field.onChange(value);
-                                  form.setValue("referentId", "");
-                                }}
-                                placeholder="Seleziona un contatto"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="referentId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Referente</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              value={field.value}
-                              disabled={!watchLeadId || referents.length === 0}
-                            >
-                              <FormControl>
-                                <SelectTrigger data-testid="select-referent">
-                                  <SelectValue placeholder={
-                                    !watchLeadId 
-                                      ? "Prima seleziona un contatto" 
-                                      : referents.length === 0 
-                                        ? "Nessun referente" 
-                                        : "Seleziona referente"
-                                  } />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {referents.map((ref) => (
-                                  <SelectItem key={ref.id} value={ref.id}>
-                                    {ref.firstName} {ref.lastName} {ref.role && `(${ref.role})`}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <FormField
-                        control={form.control}
-                        name="stageId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Fase *</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger data-testid="select-stage">
-                                  <SelectValue placeholder="Seleziona una fase" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {stages.map((stage) => (
-                                  <SelectItem key={stage.id} value={stage.id}>
-                                    <div className="flex items-center gap-2">
-                                      <div
-                                        className="w-2 h-2 rounded-full"
-                                        style={{ backgroundColor: stage.color }}
-                                      />
-                                      {stage.name}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      {isLostStage(watchStageId) && (
-                        <FormField
-                          control={form.control}
-                          name="lostReason"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Motivazione Persa</FormLabel>
-                              <Select
-                                onValueChange={(val) => field.onChange(val === "_none" ? null : val)}
-                                value={field.value || "_none"}
+                                disabled={!watchLeadId || referents.length === 0}
                               >
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-lost-reason">
-                                    <SelectValue placeholder="Seleziona motivazione" />
+                                  <SelectTrigger data-testid="select-referent">
+                                    <SelectValue placeholder={
+                                      !watchLeadId 
+                                        ? "Prima seleziona un contatto" 
+                                        : referents.length === 0 
+                                          ? "Nessun referente" 
+                                          : "Seleziona referente"
+                                    } />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="_none">Nessuna</SelectItem>
-                                  {lostReasonEnum.map((reason) => (
-                                    <SelectItem key={reason} value={reason}>
-                                      {lostReasonLabels[reason]}
+                                  {referents.map((ref) => (
+                                    <SelectItem key={ref.id} value={ref.id}>
+                                      {ref.firstName} {ref.lastName} {ref.role && `(${ref.role})`}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -1939,27 +1858,48 @@ export default function OpportunitaPage() {
                             </FormItem>
                           )}
                         />
-                      )}
-                      {isWonStage(watchStageId) && (
+                      </div>
+                      <div className="space-y-3">
                         <FormField
                           control={form.control}
-                          name="siteQuality"
+                          name="value"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Com'è il cantiere? *</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value || ""}
-                              >
+                              <FormLabel>Valore Preventivo (€)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="es. 15000"
+                                  {...field}
+                                  data-testid="input-opportunity-value"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="stageId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Fase *</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-site-quality">
-                                    <SelectValue placeholder="Seleziona..." />
+                                  <SelectTrigger data-testid="select-stage">
+                                    <SelectValue placeholder="Seleziona una fase" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {siteQualityEnum.map((quality) => (
-                                    <SelectItem key={quality} value={quality}>
-                                      {siteQualityLabels[quality]}
+                                  {stages.map((stage) => (
+                                    <SelectItem key={stage.id} value={stage.id}>
+                                      <div className="flex items-center gap-2">
+                                        <div
+                                          className="w-2 h-2 rounded-full"
+                                          style={{ backgroundColor: stage.color }}
+                                        />
+                                        {stage.name}
+                                      </div>
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -1968,7 +1908,66 @@ export default function OpportunitaPage() {
                             </FormItem>
                           )}
                         />
-                      )}
+                        {isLostStage(watchStageId) && (
+                          <FormField
+                            control={form.control}
+                            name="lostReason"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Motivazione Persa</FormLabel>
+                                <Select
+                                  onValueChange={(val) => field.onChange(val === "_none" ? null : val)}
+                                  value={field.value || "_none"}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-lost-reason">
+                                      <SelectValue placeholder="Seleziona motivazione" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="_none">Nessuna</SelectItem>
+                                    {lostReasonEnum.map((reason) => (
+                                      <SelectItem key={reason} value={reason}>
+                                        {lostReasonLabels[reason]}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                        {isWonStage(watchStageId) && (
+                          <FormField
+                            control={form.control}
+                            name="siteQuality"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Com'è il cantiere? *</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value || ""}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-site-quality">
+                                      <SelectValue placeholder="Seleziona..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {siteQualityEnum.map((quality) => (
+                                      <SelectItem key={quality} value={quality}>
+                                        {siteQualityLabels[quality]}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                      </div>
                     </div>
                     </div>
 
@@ -2365,8 +2364,7 @@ export default function OpportunitaPage() {
                       <Building2 className="w-3.5 h-3.5" />
                       Informazioni
                     </p>
-                      <div className="grid grid-cols-2 gap-3">
-                        <FormField
+                      <FormField
                           control={editForm.control}
                           name="title"
                           render={({ field }) => (
@@ -2379,223 +2377,224 @@ export default function OpportunitaPage() {
                             </FormItem>
                           )}
                         />
-                        <FormField
-                          control={editForm.control}
-                          name="value"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Valore Preventivo (€)</FormLabel>
-                              <FormControl>
-                                <Input type="number" {...field} data-testid="input-edit-value" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <FormField
-                          control={editForm.control}
-                          name="leadId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="flex items-center gap-2">
-                                Contatto *
-                                {watchEditLeadId && (
-                                  <a
-                                    href={`/leads/${watchEditLeadId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-muted-foreground hover:text-primary"
-                                    title="Apri scheda contatto"
-                                    onClick={(e) => e.stopPropagation()}
-                                    data-testid="link-open-contact"
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-3">
+                          <FormField
+                            control={editForm.control}
+                            name="leadId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="flex items-center gap-2">
+                                  Contatto *
+                                  {watchEditLeadId && (
+                                    <a
+                                      href={`/leads/${watchEditLeadId}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-muted-foreground hover:text-primary"
+                                      title="Apri scheda contatto"
+                                      onClick={(e) => e.stopPropagation()}
+                                      data-testid="link-open-contact"
+                                    >
+                                      <ExternalLink className="w-3.5 h-3.5" />
+                                    </a>
+                                  )}
+                                </FormLabel>
+                                <Select onValueChange={(value) => {
+                                  field.onChange(value);
+                                  editForm.setValue("referentId", "");
+                                }} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-edit-lead">
+                                      <SelectValue placeholder="Seleziona un contatto" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {leads.map((lead) => (
+                                      <SelectItem key={lead.id} value={lead.id}>
+                                        {lead.entityType === "COMPANY" 
+                                          ? (lead.name || `${lead.firstName} ${lead.lastName}`)
+                                          : `${lead.firstName} ${lead.lastName}`}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={editForm.control}
+                            name="referentId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Referente</FormLabel>
+                                <Select 
+                                  onValueChange={field.onChange} 
+                                  value={field.value}
+                                  disabled={!watchEditLeadId || editReferents.length === 0}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-edit-referent">
+                                      <SelectValue placeholder={
+                                        !watchEditLeadId 
+                                          ? "Prima seleziona un contatto" 
+                                          : editReferents.length === 0 
+                                            ? "Nessun referente" 
+                                            : "Seleziona referente"
+                                      } />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {editReferents.map((ref) => (
+                                      <SelectItem key={ref.id} value={ref.id}>
+                                        {ref.firstName} {ref.lastName} {ref.role && `(${ref.role})`}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                {(() => {
+                                  const selRef = editReferents.find(r => r.id === field.value);
+                                  const contactPhone = selRef ? (selRef.phone || selRef.mobile) : null;
+                                  const contactEmail = selRef ? selRef.email : null;
+                                  const fallbackLead = !selRef ? selectedEditLead : null;
+                                  const phone = contactPhone || fallbackLead?.phone || null;
+                                  const email = contactEmail || fallbackLead?.email || null;
+                                  if (!phone && !email) return null;
+                                  return (
+                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-md border bg-muted/40 px-3 py-2">
+                                      {phone && (
+                                        <a
+                                          href={`tel:${phone}`}
+                                          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                                          data-testid="link-edit-referent-phone"
+                                        >
+                                          <Phone className="w-3.5 h-3.5" />
+                                          {phone}
+                                        </a>
+                                      )}
+                                      {email && (
+                                        <a
+                                          href={`mailto:${email}`}
+                                          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                                          data-testid="link-edit-referent-email"
+                                        >
+                                          <Mail className="w-3.5 h-3.5" />
+                                          {email}
+                                        </a>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <FormField
+                            control={editForm.control}
+                            name="value"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Valore Preventivo (€)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" {...field} data-testid="input-edit-value" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={editForm.control}
+                            name="stageId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Fase *</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-edit-stage">
+                                      <SelectValue placeholder="Seleziona una fase" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {stages.map((stage) => (
+                                      <SelectItem key={stage.id} value={stage.id}>
+                                        <div className="flex items-center gap-2">
+                                          <div
+                                            className="w-2 h-2 rounded-full"
+                                            style={{ backgroundColor: stage.color }}
+                                          />
+                                          {stage.name}
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          {isLostStage(watchEditStageId) && (
+                            <FormField
+                              control={editForm.control}
+                              name="lostReason"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Motivazione Persa</FormLabel>
+                                  <Select
+                                    onValueChange={(val) => field.onChange(val === "_none" ? null : val)}
+                                    value={field.value || "_none"}
                                   >
-                                    <ExternalLink className="w-3.5 h-3.5" />
-                                  </a>
-                                )}
-                              </FormLabel>
-                              <Select onValueChange={(value) => {
-                                field.onChange(value);
-                                editForm.setValue("referentId", "");
-                              }} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-edit-lead">
-                                    <SelectValue placeholder="Seleziona un contatto" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {leads.map((lead) => (
-                                    <SelectItem key={lead.id} value={lead.id}>
-                                      {lead.entityType === "COMPANY" 
-                                        ? (lead.name || `${lead.firstName} ${lead.lastName}`)
-                                        : `${lead.firstName} ${lead.lastName}`}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-edit-lost-reason">
+                                        <SelectValue placeholder="Seleziona motivazione" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="_none">Nessuna</SelectItem>
+                                      {lostReasonEnum.map((reason) => (
+                                        <SelectItem key={reason} value={reason}>
+                                          {lostReasonLabels[reason]}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                           )}
-                        />
-                        <FormField
-                          control={editForm.control}
-                          name="referentId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Referente</FormLabel>
-                              <Select 
-                                onValueChange={field.onChange} 
-                                value={field.value}
-                                disabled={!watchEditLeadId || editReferents.length === 0}
-                              >
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-edit-referent">
-                                    <SelectValue placeholder={
-                                      !watchEditLeadId 
-                                        ? "Prima seleziona un contatto" 
-                                        : editReferents.length === 0 
-                                          ? "Nessun referente" 
-                                          : "Seleziona referente"
-                                    } />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {editReferents.map((ref) => (
-                                    <SelectItem key={ref.id} value={ref.id}>
-                                      {ref.firstName} {ref.lastName} {ref.role && `(${ref.role})`}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                              {(() => {
-                                const selRef = editReferents.find(r => r.id === field.value);
-                                const contactPhone = selRef ? (selRef.phone || selRef.mobile) : null;
-                                const contactEmail = selRef ? selRef.email : null;
-                                const fallbackLead = !selRef ? selectedEditLead : null;
-                                const phone = contactPhone || fallbackLead?.phone || null;
-                                const email = contactEmail || fallbackLead?.email || null;
-                                if (!phone && !email) return null;
-                                return (
-                                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-md border bg-muted/40 px-3 py-2">
-                                    {phone && (
-                                      <a
-                                        href={`tel:${phone}`}
-                                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
-                                        data-testid="link-edit-referent-phone"
-                                      >
-                                        <Phone className="w-3.5 h-3.5" />
-                                        {phone}
-                                      </a>
-                                    )}
-                                    {email && (
-                                      <a
-                                        href={`mailto:${email}`}
-                                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
-                                        data-testid="link-edit-referent-email"
-                                      >
-                                        <Mail className="w-3.5 h-3.5" />
-                                        {email}
-                                      </a>
-                                    )}
-                                  </div>
-                                );
-                              })()}
-                            </FormItem>
+                          {isWonStage(watchEditStageId) && (
+                            <FormField
+                              control={editForm.control}
+                              name="siteQuality"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Com'è il cantiere? *</FormLabel>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value || ""}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-edit-site-quality">
+                                        <SelectValue placeholder="Seleziona..." />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {siteQualityEnum.map((quality) => (
+                                        <SelectItem key={quality} value={quality}>
+                                          {siteQualityLabels[quality]}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                           )}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <FormField
-                          control={editForm.control}
-                          name="stageId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fase *</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-edit-stage">
-                                    <SelectValue placeholder="Seleziona una fase" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {stages.map((stage) => (
-                                    <SelectItem key={stage.id} value={stage.id}>
-                                      <div className="flex items-center gap-2">
-                                        <div
-                                          className="w-2 h-2 rounded-full"
-                                          style={{ backgroundColor: stage.color }}
-                                        />
-                                        {stage.name}
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        {isLostStage(watchEditStageId) && (
-                          <FormField
-                            control={editForm.control}
-                            name="lostReason"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Motivazione Persa</FormLabel>
-                                <Select
-                                  onValueChange={(val) => field.onChange(val === "_none" ? null : val)}
-                                  value={field.value || "_none"}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-edit-lost-reason">
-                                      <SelectValue placeholder="Seleziona motivazione" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="_none">Nessuna</SelectItem>
-                                    {lostReasonEnum.map((reason) => (
-                                      <SelectItem key={reason} value={reason}>
-                                        {lostReasonLabels[reason]}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        )}
-                        {isWonStage(watchEditStageId) && (
-                          <FormField
-                            control={editForm.control}
-                            name="siteQuality"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Com'è il cantiere? *</FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  value={field.value || ""}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-edit-site-quality">
-                                      <SelectValue placeholder="Seleziona..." />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {siteQualityEnum.map((quality) => (
-                                      <SelectItem key={quality} value={quality}>
-                                        {siteQualityLabels[quality]}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        )}
+                        </div>
                       </div>
                   </div>
 
