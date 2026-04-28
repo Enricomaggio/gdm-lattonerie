@@ -1461,54 +1461,71 @@ export type InsertSalPeriod = z.infer<typeof insertSalPeriodSchema>;
 export type SalVoce = typeof salVoci.$inferSelect;
 export type InsertSalVoce = z.infer<typeof insertSalVoceSchema>;
 
-// ========== PROMO CODES ==========
+// ============ CATALOGO: MATERIE PRIME E PRODOTTI FINITI ============
+// Tabelle globali condivise tra tutte le aziende (no companyId)
 
-export const promoCodes = pgTable("promo_codes", {
+export const rawMaterials = pgTable("raw_materials", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  companyId: varchar("company_id").notNull().references(() => companies.id),
-  code: text("code").notNull(),
-  description: text("description"),
-  discountPercent: numeric("discount_percent", { precision: 5, scale: 2 }).notNull(),
-  validFrom: timestamp("valid_from").notNull(),
-  validTo: timestamp("valid_to").notNull(),
-  articleCodes: text("article_codes").array().notNull().default(sql`'{}'::text[]`),
+  name: text("name").notNull(),
+  uomPurchase: text("uom_purchase").notNull(),
+  unitCost: numeric("unit_cost", { precision: 12, scale: 4 }).notNull().default("0"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const products = pgTable("products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  rawMaterialId: varchar("raw_material_id").notNull().references(() => rawMaterials.id, { onDelete: "restrict" }),
+  conversionRate: numeric("conversion_rate", { precision: 12, scale: 4 }).notNull().default("1"),
+  uomSale: text("uom_sale").notNull(),
+  marginPercent: numeric("margin_percent", { precision: 6, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
-  index("promo_codes_company_id_idx").on(table.companyId),
+  index("products_raw_material_id_idx").on(table.rawMaterialId),
 ]);
 
-export const insertPromoCodeSchema = createInsertSchema(promoCodes).omit({ id: true, createdAt: true, updatedAt: true }).extend({
-  discountPercent: z.string().or(z.number()).transform(v => String(v)).refine(
-    v => { const n = parseFloat(v); return !isNaN(n) && n > 0 && n <= 100; },
-    { message: "Il percentuale di sconto deve essere tra 0 e 100" }
-  ),
-  validFrom: z.string().or(z.date()).transform(v => typeof v === 'string' ? new Date(v) : v),
-  validTo: z.string().or(z.date()).transform(v => typeof v === 'string' ? new Date(v) : v),
-}).refine(
-  data => data.validFrom <= data.validTo,
-  { message: "La data di fine deve essere successiva alla data di inizio", path: ["validTo"] }
-);
+export const rawMaterialsRelations = relations(rawMaterials, ({ many }) => ({
+  products: many(products),
+}));
 
-// Update schema: excludes companyId (tenant-scoped server-side) and auto-managed fields
-// Built from base schema fields without cross-field refinements (partial updates may not include both dates)
-export const updatePromoCodeSchema = createInsertSchema(promoCodes).omit({ id: true, companyId: true, createdAt: true, updatedAt: true }).extend({
-  discountPercent: z.string().or(z.number()).transform(v => String(v)).refine(
-    v => { const n = parseFloat(v); return !isNaN(n) && n > 0 && n <= 100; },
-    { message: "Il percentuale di sconto deve essere tra 0 e 100" }
-  ).optional(),
-  validFrom: z.string().or(z.date()).transform(v => typeof v === 'string' ? new Date(v) : v).optional(),
-  validTo: z.string().or(z.date()).transform(v => typeof v === 'string' ? new Date(v) : v).optional(),
-}).partial().refine(
-  data => {
-    if (data.validFrom !== undefined && data.validTo !== undefined) {
-      return data.validFrom <= data.validTo;
-    }
-    return true;
-  },
-  { message: "La data di fine deve essere successiva alla data di inizio", path: ["validTo"] }
-);
+export const productsRelations = relations(products, ({ one }) => ({
+  rawMaterial: one(rawMaterials, {
+    fields: [products.rawMaterialId],
+    references: [rawMaterials.id],
+  }),
+}));
 
-export type PromoCode = typeof promoCodes.$inferSelect;
-export type InsertPromoCode = z.infer<typeof insertPromoCodeSchema>;
-export type UpdatePromoCode = z.infer<typeof updatePromoCodeSchema>;
+const numericString = z.union([z.string(), z.number()])
+  .transform(v => String(v))
+  .refine(v => !isNaN(parseFloat(v)), { message: "Valore numerico non valido" });
+
+export const insertRawMaterialSchema = createInsertSchema(rawMaterials).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().min(1, "Il nome è obbligatorio"),
+  uomPurchase: z.string().min(1, "L'unità di acquisto è obbligatoria"),
+  unitCost: numericString.refine(v => parseFloat(v) >= 0, { message: "Il costo unitario deve essere >= 0" }),
+});
+
+export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().min(1, "Il nome è obbligatorio"),
+  rawMaterialId: z.string().min(1, "Seleziona una materia prima"),
+  conversionRate: numericString.refine(v => parseFloat(v) > 0, { message: "La resa deve essere maggiore di 0" }),
+  uomSale: z.string().min(1, "L'unità di vendita è obbligatoria"),
+  marginPercent: numericString.refine(v => parseFloat(v) >= 0, { message: "Il margine deve essere >= 0" }),
+});
+
+export type RawMaterial = typeof rawMaterials.$inferSelect;
+export type InsertRawMaterial = z.infer<typeof insertRawMaterialSchema>;
+
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type ProductWithRawMaterial = Product & { rawMaterial: RawMaterial };

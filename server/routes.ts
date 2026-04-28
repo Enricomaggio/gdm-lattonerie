@@ -10,6 +10,7 @@ import { usersRouter } from "./routers/users.router";
 import { projectsRouter } from "./routers/projects.router";
 import { adminRouter } from "./routers/admin.router";
 import { catalogRouter } from "./routers/catalog.router";
+import { articlesRouter } from "./routers/articles.router";
 import { assignmentsRouter } from "./routers/assignments.router";
 import { notificationsRouter } from "./routers/notifications.router";
 import {
@@ -34,6 +35,7 @@ export async function registerRoutes(
   app.use('/api', authRouter);
   app.use('/api', usersRouter);
   app.use('/api', catalogRouter);
+  app.use('/api', articlesRouter);
   app.use('/api', assignmentsRouter);
   app.use('/api', notificationsRouter);
 

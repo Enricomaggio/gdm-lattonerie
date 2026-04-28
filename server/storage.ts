@@ -1,6 +1,7 @@
 import { 
   companies, leads, userCompanies, users, pipelineStages, opportunities, activityLogs, invites, contactReferents, articles, quotes, quoteItems, projectStages, projects, projectTasks,
-  workers, teams, drivers, vehicles, dailyAssignments, teamMembers, paymentMethods, leadSources, reminders, billingProfiles, notifications, notificationPreferences, clauseOverrides, salesTargets, externalEngineers, promoCodes, warehouseBalances,
+  workers, teams, drivers, vehicles, dailyAssignments, teamMembers, paymentMethods, leadSources, reminders, billingProfiles, notifications, notificationPreferences, clauseOverrides, salesTargets, externalEngineers, warehouseBalances,
+  rawMaterials, products,
   type Company, type InsertCompany,
   type Lead, type InsertLead,
   type UserCompany, type InsertUserCompany,
@@ -30,8 +31,9 @@ import {
   type ClauseOverride,
   type SalesTarget, type InsertSalesTarget,
   type ExternalEngineer, type InsertExternalEngineer,
-  type PromoCode, type InsertPromoCode,
   type WarehouseBalance, type InsertWarehouseBalance,
+  type RawMaterial, type InsertRawMaterial,
+  type Product, type InsertProduct, type ProductWithRawMaterial,
   type UserRole, type UserStatus, type User,
   type ContactType, type EntityType, type ContactSource
 } from "@shared/schema";
@@ -129,9 +131,21 @@ export interface IStorage {
   // Articles (Listino per Preventivatore)
   getArticlesByCompany(companyId: string, checklistOnly?: boolean): Promise<Article[]>;
   getArticle(id: string, companyId: string): Promise<Article | undefined>;
-  createArticle(data: InsertArticle): Promise<Article>;
   updateArticle(id: string, companyId: string, data: Partial<InsertArticle>): Promise<Article | undefined>;
-  deleteArticle(id: string, companyId: string): Promise<boolean>;
+
+  // Raw Materials (catalogo globale)
+  getRawMaterials(): Promise<RawMaterial[]>;
+  getRawMaterial(id: string): Promise<RawMaterial | undefined>;
+  createRawMaterial(data: InsertRawMaterial): Promise<RawMaterial>;
+  updateRawMaterial(id: string, data: Partial<InsertRawMaterial>): Promise<RawMaterial | undefined>;
+  deleteRawMaterial(id: string): Promise<boolean>;
+
+  // Products (catalogo globale, con materia prima associata)
+  getProducts(): Promise<ProductWithRawMaterial[]>;
+  getProduct(id: string): Promise<ProductWithRawMaterial | undefined>;
+  createProduct(data: InsertProduct): Promise<Product>;
+  updateProduct(id: string, data: Partial<InsertProduct>): Promise<Product | undefined>;
+  deleteProduct(id: string): Promise<boolean>;
   
   // Quotes (Preventivi)
   getQuotesByOpportunity(opportunityId: string, companyId: string): Promise<Quote[]>;
@@ -286,14 +300,6 @@ export interface IStorage {
   getSalesTargetsForRange(companyId: string, startDate: Date, endDate: Date): Promise<SalesTarget[]>;
   getSalesTarget(companyId: string, userId: string, month: number, year: number): Promise<SalesTarget | undefined>;
   upsertSalesTarget(data: InsertSalesTarget): Promise<SalesTarget>;
-
-  // Promo Codes
-  getPromoCodesByCompany(companyId: string): Promise<PromoCode[]>;
-  getActivePromoCodes(companyId: string): Promise<PromoCode[]>;
-  getPromoCode(id: string, companyId: string): Promise<PromoCode | undefined>;
-  createPromoCode(data: InsertPromoCode): Promise<PromoCode>;
-  updatePromoCode(id: string, companyId: string, data: Partial<InsertPromoCode>): Promise<PromoCode | undefined>;
-  deletePromoCode(id: string, companyId: string): Promise<boolean>;
 
   // Warehouse Balances
   getWarehouseBalances(companyId: string): Promise<WarehouseBalance[]>;
@@ -1269,11 +1275,6 @@ export class DatabaseStorage implements IStorage {
     return article || undefined;
   }
 
-  async createArticle(data: InsertArticle): Promise<Article> {
-    const [article] = await db.insert(articles).values(data).returning();
-    return article;
-  }
-
   async updateArticle(id: string, companyId: string, data: Partial<InsertArticle>): Promise<Article | undefined> {
     const updateData = { ...data, updatedAt: new Date() };
     const [article] = await db
@@ -1284,14 +1285,70 @@ export class DatabaseStorage implements IStorage {
     return article || undefined;
   }
 
-  async deleteArticle(id: string, companyId: string): Promise<boolean> {
-    // Soft delete: imposta isActive = 0
-    const [article] = await db
-      .update(articles)
-      .set({ isActive: 0, updatedAt: new Date() })
-      .where(and(eq(articles.id, id), eq(articles.companyId, companyId)))
+  // ============ RAW MATERIALS (Materie Prime) ============
+
+  async getRawMaterials(): Promise<RawMaterial[]> {
+    return db.select().from(rawMaterials).orderBy(rawMaterials.name);
+  }
+
+  async getRawMaterial(id: string): Promise<RawMaterial | undefined> {
+    const [rm] = await db.select().from(rawMaterials).where(eq(rawMaterials.id, id));
+    return rm || undefined;
+  }
+
+  async createRawMaterial(data: InsertRawMaterial): Promise<RawMaterial> {
+    const [rm] = await db.insert(rawMaterials).values(data).returning();
+    return rm;
+  }
+
+  async updateRawMaterial(id: string, data: Partial<InsertRawMaterial>): Promise<RawMaterial | undefined> {
+    const [rm] = await db
+      .update(rawMaterials)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(rawMaterials.id, id))
       .returning();
-    return !!article;
+    return rm || undefined;
+  }
+
+  async deleteRawMaterial(id: string): Promise<boolean> {
+    const result = await db.delete(rawMaterials).where(eq(rawMaterials.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // ============ PRODUCTS (Prodotti Finiti) ============
+
+  async getProducts(): Promise<ProductWithRawMaterial[]> {
+    return db.query.products.findMany({
+      with: { rawMaterial: true },
+      orderBy: (p, { asc }) => [asc(p.name)],
+    }) as Promise<ProductWithRawMaterial[]>;
+  }
+
+  async getProduct(id: string): Promise<ProductWithRawMaterial | undefined> {
+    const result = await db.query.products.findFirst({
+      where: eq(products.id, id),
+      with: { rawMaterial: true },
+    });
+    return (result as ProductWithRawMaterial | undefined) || undefined;
+  }
+
+  async createProduct(data: InsertProduct): Promise<Product> {
+    const [p] = await db.insert(products).values(data).returning();
+    return p;
+  }
+
+  async updateProduct(id: string, data: Partial<InsertProduct>): Promise<Product | undefined> {
+    const [p] = await db
+      .update(products)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(products.id, id))
+      .returning();
+    return p || undefined;
+  }
+
+  async deleteProduct(id: string): Promise<boolean> {
+    const result = await db.delete(products).where(eq(products.id, id)).returning();
+    return result.length > 0;
   }
 
   // ============ QUOTES (Preventivi) ============
@@ -2305,47 +2362,6 @@ export class DatabaseStorage implements IStorage {
       const [created] = await db.insert(salesTargets).values(data).returning();
       return created;
     }
-  }
-
-  async getPromoCodesByCompany(companyId: string): Promise<PromoCode[]> {
-    return db.select().from(promoCodes).where(eq(promoCodes.companyId, companyId)).orderBy(desc(promoCodes.createdAt));
-  }
-
-  async getActivePromoCodes(companyId: string): Promise<PromoCode[]> {
-    const now = new Date();
-    // validFrom/validTo are stored as timestamps from date inputs (typically midnight UTC).
-    // To be fully day-inclusive:
-    //   - a promo starting "today" is valid even if validFrom is today's midnight (lte now = true)
-    //   - a promo ending "today" should be valid all day, so compare validTo >= start-of-today
-    const startOfToday = new Date(now);
-    startOfToday.setHours(0, 0, 0, 0);
-    return db.select().from(promoCodes).where(
-      and(
-        eq(promoCodes.companyId, companyId),
-        lte(promoCodes.validFrom, now),
-        gte(promoCodes.validTo, startOfToday)
-      )
-    );
-  }
-
-  async getPromoCode(id: string, companyId: string): Promise<PromoCode | undefined> {
-    const [promo] = await db.select().from(promoCodes).where(and(eq(promoCodes.id, id), eq(promoCodes.companyId, companyId)));
-    return promo || undefined;
-  }
-
-  async createPromoCode(data: InsertPromoCode): Promise<PromoCode> {
-    const [promo] = await db.insert(promoCodes).values(data).returning();
-    return promo;
-  }
-
-  async updatePromoCode(id: string, companyId: string, data: Partial<InsertPromoCode>): Promise<PromoCode | undefined> {
-    const [promo] = await db.update(promoCodes).set({ ...data, updatedAt: new Date() }).where(and(eq(promoCodes.id, id), eq(promoCodes.companyId, companyId))).returning();
-    return promo || undefined;
-  }
-
-  async deletePromoCode(id: string, companyId: string): Promise<boolean> {
-    const result = await db.delete(promoCodes).where(and(eq(promoCodes.id, id), eq(promoCodes.companyId, companyId))).returning();
-    return result.length > 0;
   }
 
   async getWarehouseBalances(companyId: string): Promise<WarehouseBalance[]> {
