@@ -5,12 +5,10 @@ import { isAuthenticated, requireRole } from "../auth";
 import { insertReminderSchema } from "@shared/schema";
 import type { UserRole } from "@shared/schema";
 import { db } from "../db";
-import { eq, and, lte, inArray, isNull, sql as drizzleSql } from "drizzle-orm";
+import { eq, and, lte, inArray, isNull } from "drizzle-orm";
 import {
   opportunities,
   notifications,
-  projectStages,
-  projects as projectsTable,
   leads as leadsTable,
 } from "@shared/schema";
 import { z } from "zod";
@@ -401,109 +399,6 @@ notificationsRouter.post("/notifications/check-expiring-quotes", isAuthenticated
     res.json({ created: notificationsToCreate.length });
   } catch (error: any) {
     console.error("Error checking expiring quotes:", error);
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// POST /api/notifications/check-rdc-pending
-notificationsRouter.post("/notifications/check-rdc-pending", isAuthenticated, async (req, res) => {
-  try {
-    const { id: userId, role } = req.user!;
-    const userCompany = await resolveUserCompany(userId, role, req);
-    if (!userCompany) {
-      return res.status(403).json({ message: "Utente non associato a nessuna azienda" });
-    }
-
-    const companyId = userCompany.companyId;
-    const now = new Date();
-    const cutoff = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-
-    const rdcStages = await db
-      .select()
-      .from(projectStages)
-      .where(
-        and(
-          eq(projectStages.companyId, companyId),
-          drizzleSql`lower(${projectStages.name}) like '%rdc%'`
-        )
-      );
-
-    if (rdcStages.length === 0) {
-      return res.json({ created: 0 });
-    }
-
-    const rdcStageIds = rdcStages.map(s => s.id);
-
-    const rdcProjects = await db
-      .select()
-      .from(projectsTable)
-      .where(
-        and(
-          eq(projectsTable.companyId, companyId),
-          drizzleSql`${projectsTable.stageId} = ANY(${rdcStageIds})`,
-          drizzleSql`${projectsTable.stageEnteredAt} IS NOT NULL`,
-          drizzleSql`${projectsTable.stageEnteredAt} <= ${cutoff}`
-        )
-      );
-
-    const allUsers = await storage.getUsersByCompanyId(companyId);
-    const adminUsers = allUsers.filter(u =>
-      u.role === "COMPANY_ADMIN" || u.role === "SUPER_ADMIN"
-    );
-
-    // Build tutte le coppie (project, recipient) prima del fetch
-    type NotifPair = { recipientId: string; link: string; project: (typeof rdcProjects)[0]; daysAgo: number };
-    const allPairs: NotifPair[] = [];
-    for (const project of rdcProjects) {
-      const daysAgo = project.stageEnteredAt
-        ? Math.floor((now.getTime() - new Date(project.stageEnteredAt).getTime()) / (24 * 60 * 60 * 1000))
-        : 3;
-      const notifLink = `/progetti?rdc=${project.id}`;
-
-      const recipientIds = new Set<string>();
-      if (project.assignedTechnicianId) recipientIds.add(project.assignedTechnicianId);
-      for (const admin of adminUsers) recipientIds.add(admin.id);
-      for (const recipientId of recipientIds) {
-        allPairs.push({ recipientId, link: notifLink, project, daysAgo });
-      }
-    }
-
-    // Bulk fetch: 1 query per tutte le notifiche RDC_PENDING esistenti invece di N×M query
-    const rdcLinks = allPairs.map(p => p.link).filter((l, i, arr) => arr.indexOf(l) === i);
-    const existingRdcNotifs = rdcLinks.length > 0
-      ? await db
-          .select({ userId: notifications.userId, link: notifications.link })
-          .from(notifications)
-          .where(and(
-            eq(notifications.type, "RDC_PENDING"),
-            eq(notifications.isRead, false),
-            inArray(notifications.link, rdcLinks)
-          ))
-      : [];
-
-    const alreadyNotifiedRdc = new Set(existingRdcNotifs.map(n => `${n.userId}:${n.link}`));
-
-    const notificationsToCreate: Array<typeof notifications.$inferInsert> = [];
-    for (const { recipientId, link, project, daysAgo } of allPairs) {
-      if (alreadyNotifiedRdc.has(`${recipientId}:${link}`)) continue;
-      notificationsToCreate.push({
-        userId: recipientId,
-        companyId,
-        type: "RDC_PENDING",
-        title: "Sollecita l'ingegnere",
-        message: `${project.clientName} è in attesa di RDC da ${daysAgo} giorni`,
-        link,
-        isRead: false,
-      });
-    }
-
-    if (notificationsToCreate.length > 0) {
-      await db.insert(notifications).values(notificationsToCreate);
-    }
-
-    res.json({ created: notificationsToCreate.length });
-  } catch (error: any) {
-    console.error("Error checking RDC pending:", error);
     res.status(500).json({ message: error.message });
   }
 });

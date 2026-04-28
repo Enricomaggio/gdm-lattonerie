@@ -1397,7 +1397,6 @@ export const notificationTypes = [
   { type: "SITE_PHOTO", label: "Cantieri da foto", description: "Quando un cantiere è segnalato come bello da fotografare", roles: ["COMPANY_ADMIN", "SUPER_ADMIN"] },
   { type: "SITE_PHOTO_VIDEO", label: "Cantieri da foto + video", description: "Quando un cantiere è segnalato per foto e videointervista", roles: ["COMPANY_ADMIN", "SUPER_ADMIN"] },
   { type: "QUOTE_EXPIRING", label: "Preventivo in scadenza", description: "Quando un'opportunità è in 'Preventivo Inviato' da almeno 60 giorni senza aggiornamenti", roles: ["SALES_AGENT", "COMPANY_ADMIN"] },
-  { type: "RDC_PENDING", label: "RDC in attesa", description: "Quando un progetto rimane nella fase con 'RDC' da almeno 3 giorni", roles: ["TECHNICIAN", "COMPANY_ADMIN", "SUPER_ADMIN"] },
   { type: "LEAD_CALL_REQUEST", label: "Contatto da chiamare", description: "Quando la segreteria segnala un nuovo contatto da richiamare", roles: ["SALES_AGENT", "COMPANY_ADMIN"] },
 ] as const;
 

@@ -2454,7 +2454,6 @@ function AdminDashboard({
 }
 
 const EXPIRING_QUOTES_CHECK_COOLDOWN = 4 * 60 * 60 * 1000; // 4 ore in ms
-const RDC_PENDING_CHECK_COOLDOWN = 4 * 60 * 60 * 1000; // 4 ore in ms
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -2523,23 +2522,6 @@ export default function DashboardPage() {
     if (now - lastCheck < EXPIRING_QUOTES_CHECK_COOLDOWN) return;
     sessionStorage.setItem(storageKey, String(now));
     apiRequest("POST", "/api/notifications/check-expiring-quotes").then(() => {
-      queryClient.invalidateQueries({ predicate: (q) => {
-        const key = q.queryKey[0];
-        return typeof key === "string" && key.startsWith("/api/notifications");
-      }});
-    }).catch(() => {});
-  }, [user]);
-
-  // Auto-check RDC in attesa da 3+ giorni, una volta ogni 4 ore per sessione (solo tecnici e admin)
-  useEffect(() => {
-    if (!user) return;
-    if (!["TECHNICIAN", "COMPANY_ADMIN", "SUPER_ADMIN"].includes(user.role)) return;
-    const storageKey = `rdc_pending_check_ts_${user.id}`;
-    const lastCheck = parseInt(sessionStorage.getItem(storageKey) || "0", 10);
-    const now = Date.now();
-    if (now - lastCheck < RDC_PENDING_CHECK_COOLDOWN) return;
-    sessionStorage.setItem(storageKey, String(now));
-    apiRequest("POST", "/api/notifications/check-rdc-pending").then(() => {
       queryClient.invalidateQueries({ predicate: (q) => {
         const key = q.queryKey[0];
         return typeof key === "string" && key.startsWith("/api/notifications");

@@ -438,7 +438,6 @@ function NotificationPreferencesSection({ userRole }: { userRole: string }) {
     { key: "NEW_PROJECT", label: "Nuovi cantieri", description: "Notifica quando un'opportunità viene vinta e si crea un nuovo progetto", roles: ["TECHNICIAN"], types: ["NEW_PROJECT"] },
     { key: "SITE_PHOTO_VIDEO", label: "Cantieri da foto e/o video", description: "Notifica quando un cantiere vinto richiede foto e/o video", roles: ["COMPANY_ADMIN", "SUPER_ADMIN"], types: ["SITE_PHOTO", "SITE_PHOTO_VIDEO"] },
     { key: "STALE_OPPORTUNITY", label: "Opportunità in attesa", description: "Mostra le opportunità ferme nella prima colonna da più di 4 ore nella dashboard", roles: ["COMPANY_ADMIN", "SUPER_ADMIN", "SALES_AGENT"], types: ["STALE_OPPORTUNITY"] },
-    { key: "RDC_PENDING", label: "RDC in attesa", description: "Notifica quando un progetto rimane nella fase con 'RDC' da almeno 3 giorni", roles: ["TECHNICIAN", "COMPANY_ADMIN", "SUPER_ADMIN"], types: ["RDC_PENDING"] },
     { key: "LEAD_CALL_REQUEST", label: "Contatto da chiamare", description: "Notifica quando la segreteria segnala un nuovo contatto da richiamare", roles: ["SALES_AGENT", "COMPANY_ADMIN"], types: ["LEAD_CALL_REQUEST"] },
   ];
 
